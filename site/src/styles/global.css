@@ -79,4 +79,13 @@
   .btn-secondary {
     @apply bg-propel-blue text-white font-medium px-5 py-2 rounded-lg hover:bg-opacity-90 transition-all duration-200;
   }
+
+  /* Table of Contents */
+  .toc-link {
+    @apply text-gray-600 hover:text-propel-blue border-l-2 border-transparent -ml-[2px];
+  }
+
+  .toc-link.active {
+    @apply text-propel-blue font-medium border-l-2 border-propel-blue;
+  }
 }
