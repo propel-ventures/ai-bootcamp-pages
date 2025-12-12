@@ -15,6 +15,12 @@ resources:
   - title: "Docling Documentation"
     url: "https://ds4sd.github.io/docling/"
     type: "docs"
+  - title: "Bootcamp App - Memory Module"
+    url: "https://github.com/propel-ventures/ai-bootcamp/tree/main/ai-bootcamp-app/backend/app/memory"
+    type: "repo"
+  - title: "Memory Architecture Documentation"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/memory.md"
+    type: "docs"
 quiz:
   - question: "What is progressive context?"
     options:
@@ -48,26 +54,57 @@ quiz:
 
 ## Overview
 
-Context engineering is a core skill for production AI systems - managing what the AI knows and when.
+Context engineering is a core skill for production AI systems - managing what the AI knows and when. This module covers how to provide relevant information to AI models through RAG pipelines, progressive context loading, structured outputs, and conversation memory.
+
+## Codebase Reference
+
+The bootcamp application demonstrates memory concepts with a working implementation:
+
+- **[Thread Memory Provider](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/thread_provider.py)** - Manages conversation history per thread
+- **[User Preferences Provider](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/user_provider.py)** - Stores long-term user facts
+- **[Memory Configuration](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/config.py)** - Redis and TTL settings
 
 ## Topics Covered
 
-### Traditional RAG Pipelines
-- Vector stores and embeddings
-- Retrieval strategies
-- S3 vectors for scale
+### 1. Traditional RAG Pipelines
 
-### Progressive Context
-- Avoiding context overload
-- Tool flooding prevention
-- On-the-fly vs pre-built RAG
+RAG (Retrieval-Augmented Generation) grounds model responses in your data by retrieving relevant documents at query time.
 
-### Structured Output
-- Pydantic AI patterns
-- Instructor library
-- Outlines for constrained generation
+**Core components:**
+- **Vector stores** - Embed and index documents for semantic search
+- **Embeddings** - Convert text to vectors for similarity matching
+- **Retrieval strategies** - Top-k, MMR, hybrid search
 
-### Memory Management
+**Scaling considerations:**
+- S3-backed vector stores for large corpora
+- Chunking strategies for long documents
+- Re-ranking for improved relevance
+
+### 2. Progressive Context
+
+Loading all context upfront wastes tokens and can overwhelm the model. Progressive context strategies load information as needed.
+
+**Techniques:**
+- **On-demand retrieval** - Fetch context only when relevant
+- **Tool flooding prevention** - Limit available tools based on task
+- **Lazy loading** - Start minimal, expand as conversation develops
+
+| Approach | When to Use |
+|----------|-------------|
+| Pre-built RAG | Known document corpus, predictable queries |
+| On-the-fly RAG | Dynamic sources, exploratory queries |
+| Progressive | Long conversations, multiple topics |
+
+### 3. Structured Output
+
+Constrain model outputs to match expected schemas for reliable parsing.
+
+**Libraries:**
+- **Pydantic AI** - Type-safe responses with validation
+- **Instructor** - Structured extraction with retries
+- **Outlines** - Grammar-constrained generation
+
+### 4. Memory Management
 
 Memory gives agents the ability to maintain context across interactions, transforming stateless request-response systems into contextual assistants.
 
@@ -93,26 +130,56 @@ Without memory, every agent interaction starts fresh:
 #### Types of Memory
 
 **Thread Memory (Short-term)**
-- Scoped to a single conversation
-- Stores message history in sequence
-- Short TTL (hours to days)
+
+Scoped to a single conversation, stores message history in sequence.
+
+```python
+# From ai-bootcamp-app/backend/app/memory/thread_provider.py
+class ThreadMemoryProvider:
+    """Provides conversation history for a specific thread."""
+
+    def __init__(self, redis: Redis | None, settings: MemorySettings, thread_id: str):
+        self._redis = redis
+        self._settings = settings
+        self._key = f"thread:{thread_id}:messages"
+```
+
+- Short TTL (24 hours default)
 - Enables: "What did I just ask?" continuity
 
+📁 **See implementation:** [thread_provider.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/thread_provider.py)
+
 **User Preferences (Long-term)**
-- Scoped to a user across all conversations
-- Stores facts, preferences, learned information
-- Long TTL (days to months)
+
+Scoped to a user across all conversations, stores facts and preferences.
+
+```python
+# From ai-bootcamp-app/backend/app/memory/user_provider.py
+class UserPreferencesProvider:
+    """Provides user preferences across all threads."""
+
+    def __init__(self, redis: Redis | None, settings: MemorySettings, user_id: str):
+        self._redis = redis
+        self._settings = settings
+        self._key = f"user:{user_id}:preferences"
+```
+
+- Long TTL (30 days default)
 - Enables: "Remember I prefer Python" personalization
+
+📁 **See implementation:** [user_provider.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/user_provider.py)
 
 #### Memory Decay and Prioritization
 
 Not all memories are equal. Strategies include:
 
-- **Recency weighting**: Recent messages matter more
-- **Sliding window**: Keep only last N messages
-- **Summarization**: Compress old context into summaries
-- **TTL expiration**: Automatic cleanup of stale data
-- **Importance scoring**: Retain high-value information longer
+| Strategy | How It Works |
+|----------|--------------|
+| **Recency weighting** | Recent messages matter more |
+| **Sliding window** | Keep only last N messages |
+| **Summarization** | Compress old context into summaries |
+| **TTL expiration** | Automatic cleanup of stale data |
+| **Importance scoring** | Retain high-value information longer |
 
 #### Storage Options
 
@@ -123,66 +190,50 @@ Not all memories are equal. Strategies include:
 | **PostgreSQL** | Relational + vector | When you need SQL + embeddings |
 | **In-memory** | Development/testing | No persistence, simple |
 
-#### Hands-On: Test Memory in the App
+#### Configuration
 
-Try these exercises using the Chat UI to see memory in action.
-
-**Setup**
+Use environment variables to configure memory behavior:
 
 ```bash
-cd ai-bootcamp-app
-docker-compose up
+# From ai-bootcamp-app/backend/.env.example
+
+# Redis Settings
+REDIS__HOST=localhost
+REDIS__PORT=6379
+REDIS__PASSWORD=
+REDIS__DB=0
+
+# Memory Settings
+MEMORY__THREAD_TTL_HOURS=24
+MEMORY__USER_TTL_DAYS=30
+MEMORY__MAX_THREAD_MESSAGES=50
 ```
 
-Wait for services to start, then open:
-- **Chat UI**: http://localhost:3000
-- **Redis Insight**: http://localhost:8001 (view stored memory)
-
-**Exercise 1: Test Thread Memory**
-
-1. Open the Chat UI at http://localhost:3000
-2. Send a message: *"My name is Alice and I am learning Python"*
-3. Wait for the streaming response
-4. Send a follow-up: *"What is my name and what am I learning?"*
-
-The agent remembers your name and learning goal. The UI maintains a `thread_id` for your session, so all messages share context.
-
-**Exercise 2: Inspect Redis Storage**
-
-1. Open Redis Insight at http://localhost:8001
-2. Browse keys and find `thread:{id}:messages`
-3. Click to view the JSON list of your conversation
-4. Notice the TTL countdown (24 hours default)
-
-You'll see your messages stored as:
-```json
-[
-  {"role": "user", "content": "My name is Alice..."},
-  {"role": "assistant", "content": "Nice to meet you..."},
-  {"role": "user", "content": "What is my name..."},
-  {"role": "assistant", "content": "Your name is Alice..."}
-]
-```
-
-**Exercise 3: Test Memory Isolation**
-
-1. Open a new browser tab (or incognito window)
-2. Go to http://localhost:3000
-3. Ask: *"What is my name?"*
-
-The agent won't know - new tab means new `thread_id`, fresh context. This demonstrates that memory is scoped to each conversation thread.
-
-**Exercise 4: Test Conversation Continuity**
-
-Back in your original tab, continue the conversation:
-
-1. Send: *"I also want to learn about Redis"*
-2. Send: *"Summarize everything you know about me"*
-
-The agent should recall: your name (Alice), that you're learning Python, and now Redis. This shows how thread memory accumulates over a conversation.
+📁 **See configuration:** [config.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/config.py)
 
 > **Deep Dive**: See [Course 2, Module 3: Memory Management with Redis](/ai-bootcamp-pages/course-2/03-memory-management/) for production implementation patterns including the Context Provider pattern, TTL-based cleanup, and graceful degradation.
 
-### PDF Tooling
-- Docling for document processing
-- Text extraction best practices
+### 5. PDF Tooling
+
+Extract text from documents for RAG pipelines.
+
+**Tools:**
+- **Docling** - IBM's document processing library
+- Best practices for chunking and metadata extraction
+
+## Hands-On Exercise
+
+1. Start the bootcamp app with `docker-compose up`
+2. Open the Chat UI at http://localhost:3000
+3. Test thread memory:
+   - Send: *"My name is Alice and I am learning Python"*
+   - Send: *"What is my name and what am I learning?"*
+   - Verify the agent remembers your context
+4. Test memory isolation:
+   - Open a new incognito tab
+   - Ask: *"What is my name?"*
+   - Verify the agent doesn't know (new thread = fresh context)
+5. Inspect Redis storage at http://localhost:8001
+   - Find `thread:{id}:messages` keys
+   - View the JSON conversation history
+   - Note the TTL countdown
