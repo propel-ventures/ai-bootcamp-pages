@@ -4,18 +4,95 @@ import CourseCard from '../components/CourseCard.astro';
 ---
 
 <Layout title="Home">
-  <div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
+  <!-- Hero Section -->
+  <section class="bg-propel-navy text-white py-16 md:py-24 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-propel-cyan rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 bg-propel-blue rounded-full blur-3xl"></div>
+    </div>
+    <!-- Rocket lift-off background image -->
+    <div class="absolute right-0 bottom-0 w-1/2 h-full opacity-30 md:opacity-50 pointer-events-none">
+      <img
+        src="/ai-bootcamp-pages/rocket-liftoff.png"
+        alt=""
+        class="absolute right-0 bottom-0 w-full h-full object-contain object-right-bottom"
+      />
+    </div>
+    <div class="max-w-6xl mx-auto px-4 md:px-8 relative z-10">
+      <div class="md:max-w-2xl">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">
+          <span class="text-propel-cyan">AI Engineering</span> Bootcamp
+        </h1>
+        <p class="text-xl md:text-2xl text-white/80 leading-relaxed">
+          A two-week intensive program covering AI-powered development,
+          context engineering, agentic workflows, and production systems.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a href="/ai-bootcamp-pages/course-1/" class="btn-primary">
+            Start Learning
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You'll Learn Section -->
+  <section class="bg-white py-16">
+    <div class="max-w-6xl mx-auto px-4 md:px-8">
+      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+        <div class="flex-1 text-center md:text-left">
+          <h2 class="text-3xl md:text-4xl font-bold text-propel-navy mb-4">
+            Where AI Strategy Meets Engineering
+          </h2>
+          <p class="text-lg text-gray-600 leading-relaxed mb-6">
+            This bootcamp sits at the intersection of product strategy, AI transformation,
+            and hands-on engineering. You'll gain practical skills to build and deploy
+            AI-powered solutions that drive real business value.
+          </p>
+          <ul class="space-y-3 text-left">
+            <li class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-propel-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="text-propel-navy">AI-powered development workflows</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-propel-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="text-propel-navy">Context engineering & prompt design</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-propel-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="text-propel-navy">Production-ready agentic systems</span>
+            </li>
+          </ul>
+        </div>
+        <div class="flex-1 flex justify-center">
+          <img
+            src="/ai-bootcamp-pages/ai-engineering-rings.png"
+            alt="AI Engineering at the intersection of Product Strategy, AI Strategy, and Engineering"
+            class="max-w-sm w-full"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Courses Section -->
+  <div class="max-w-6xl mx-auto px-4 md:px-8 py-16">
     <section class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-[--propel-navy] mb-4">
-        AI Engineering Bootcamp
-      </h1>
-      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-        A two-week intensive program covering AI-powered development,
-        context engineering, agentic workflows, and production systems.
+      <h2 class="text-3xl md:text-4xl font-bold text-propel-navy mb-4">
+        Course Curriculum
+      </h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Two weeks of hands-on learning with practical projects and real-world applications.
       </p>
     </section>
 
-    <section class="grid md:grid-cols-2 gap-6">
+    <section class="grid md:grid-cols-2 gap-8">
       <CourseCard
         title="Elements of AI Engineering"
         week="Week 1"
@@ -32,4 +109,26 @@ import CourseCard from '../components/CourseCard.astro';
       />
     </section>
   </div>
+
+  <!-- CTA Section with Astronaut -->
+  <section class="bg-propel-navy py-16 relative overflow-hidden">
+    <div class="absolute left-0 bottom-0 w-48 md:w-64 opacity-80 pointer-events-none">
+      <img
+        src="/ai-bootcamp-pages/astronaut-flag.png"
+        alt=""
+        class="w-full"
+      />
+    </div>
+    <div class="max-w-6xl mx-auto px-4 md:px-8 text-center relative z-10">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+        Ready to Launch Your AI Journey?
+      </h2>
+      <p class="text-xl text-white/80 max-w-2xl mx-auto mb-8">
+        Join the bootcamp and gain the skills to build the next generation of AI-powered applications.
+      </p>
+      <a href="/ai-bootcamp-pages/course-1/" class="btn-primary inline-block">
+        Begin Week 1
+      </a>
+    </div>
+  </section>
 </Layout>

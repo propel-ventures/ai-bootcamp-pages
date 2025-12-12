@@ -12,17 +12,18 @@ const { title, week, description, href, moduleCount } = Astro.props;
 
 <a
   href={href}
-  class="block bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-[--propel-navy] transition-all duration-200"
+  class="group block bg-white border-2 border-transparent rounded-xl p-6 hover:shadow-xl hover:border-propel-cyan transition-all duration-300 relative overflow-hidden"
 >
+  <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-propel-cyan to-propel-blue"></div>
   <div class="flex items-center justify-between mb-3">
-    <span class="text-sm font-medium text-gray-500">{week}</span>
-    <span class="text-sm text-gray-400">{moduleCount} modules</span>
+    <span class="text-sm font-semibold text-propel-blue bg-propel-cyan-light/30 px-3 py-1 rounded-full">{week}</span>
+    <span class="text-sm text-gray-500 font-medium">{moduleCount} modules</span>
   </div>
-  <h2 class="text-xl font-bold text-[--propel-navy] mb-2">{title}</h2>
-  <p class="text-gray-600">{description}</p>
-  <div class="mt-4 flex items-center text-blue-600 font-medium">
+  <h2 class="text-xl font-bold text-propel-navy mb-2 group-hover:text-propel-blue transition-colors">{title}</h2>
+  <p class="text-gray-600 leading-relaxed">{description}</p>
+  <div class="mt-5 flex items-center text-propel-orange font-semibold group-hover:gap-2 transition-all">
     Start learning
-    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
     </svg>
   </div>

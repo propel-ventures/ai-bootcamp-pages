@@ -8,21 +8,32 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
 ---
 
 <Layout title="Course 1: Elements of AI Engineering">
-  <div class="max-w-4xl mx-auto px-4 md:px-8 py-12">
-    <nav class="mb-8">
-      <a href="/ai-bootcamp-pages/" class="text-blue-600 hover:text-blue-800">&larr; Back to courses</a>
-    </nav>
-
-    <header class="mb-10">
-      <span class="text-sm font-medium text-gray-500">Week 1</span>
-      <h1 class="text-3xl md:text-4xl font-bold text-[--propel-navy] mt-1 mb-4">
+  <!-- Course Header -->
+  <section class="bg-propel-navy text-white py-12 relative overflow-hidden">
+    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-32 md:w-48 opacity-40 pointer-events-none">
+      <img src="/ai-bootcamp-pages/flying-spaceman.png" alt="" class="w-full" />
+    </div>
+    <div class="max-w-4xl mx-auto px-4 md:px-8 relative z-10">
+      <nav class="mb-6">
+        <a href="/ai-bootcamp-pages/" class="text-propel-cyan hover:text-white transition-colors inline-flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to courses
+        </a>
+      </nav>
+      <span class="text-sm font-semibold text-propel-cyan bg-propel-cyan/20 px-3 py-1 rounded-full">Week 1</span>
+      <h1 class="text-3xl md:text-4xl font-bold mt-3 mb-4">
         Elements of AI Engineering
       </h1>
-      <p class="text-lg text-gray-600">
+      <p class="text-lg text-white/80 max-w-2xl">
         Master the fundamentals of AI-powered development, from coding assistants to enterprise foundations.
       </p>
-    </header>
+    </div>
+  </section>
 
+  <!-- Modules List -->
+  <div class="max-w-4xl mx-auto px-4 md:px-8 py-12">
     <section class="space-y-4">
       {sortedModules.map((module) => (
         <ModuleCard
@@ -33,5 +44,16 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
         />
       ))}
     </section>
+
+    <!-- Next Course CTA -->
+    <div class="mt-12 p-6 bg-white rounded-xl border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-gray-500 mb-1">Up Next</p>
+        <h3 class="text-lg font-semibold text-propel-navy">Week 2: AI Workflows & Engineering</h3>
+      </div>
+      <a href="/ai-bootcamp-pages/course-2/" class="btn-secondary whitespace-nowrap">
+        View Week 2
+      </a>
+    </div>
   </div>
 </Layout>
