@@ -6,15 +6,20 @@ interface Props {
 const { objectives } = Astro.props;
 ---
 
-<div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8">
-  <h2 class="text-lg font-semibold text-[--propel-navy] mb-4">Learning Objectives</h2>
-  <ul class="space-y-2">
+<div class="bg-gradient-to-r from-propel-cyan-light/20 to-propel-cyan/10 border border-propel-cyan/30 rounded-xl p-6 mb-8">
+  <h2 class="text-lg font-semibold text-propel-navy mb-4 flex items-center gap-2">
+    <svg class="w-5 h-5 text-propel-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+    Learning Objectives
+  </h2>
+  <ul class="space-y-3">
     {objectives.map((objective) => (
-      <li class="flex items-start gap-2">
-        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <li class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-propel-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span class="text-gray-700">{objective}</span>
+        <span class="text-propel-navy">{objective}</span>
       </li>
     ))}
   </ul>

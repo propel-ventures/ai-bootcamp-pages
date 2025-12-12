@@ -1,15 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --propel-navy: #1e3a5f;
-  --propel-light: #f8fafc;
+  --propel-navy: #0b1035;
+  --propel-blue: #2254FE;
+  --propel-cyan: #73DEFF;
+  --propel-cyan-light: #8adcff;
+  --propel-orange: #f9a500;
+  --propel-gray: #f4f6fa;
 }
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-white text-propel-navy antialiased font-poppins;
   }
 }
 
@@ -19,11 +25,11 @@
   }
 
   .prose h2 {
-    @apply text-2xl font-bold text-[--propel-navy] mt-8 mb-4;
+    @apply text-2xl font-bold text-propel-navy mt-8 mb-4;
   }
 
   .prose h3 {
-    @apply text-xl font-semibold text-[--propel-navy] mt-6 mb-3;
+    @apply text-xl font-semibold text-propel-navy mt-6 mb-3;
   }
 
   .prose p {
@@ -39,7 +45,7 @@
   }
 
   .prose a {
-    @apply text-blue-600 hover:text-blue-800 underline;
+    @apply text-propel-blue hover:text-propel-cyan underline;
   }
 
   .prose table {
@@ -47,7 +53,7 @@
   }
 
   .prose th {
-    @apply bg-[--propel-navy] text-white px-4 py-2 text-left font-semibold border border-gray-300;
+    @apply bg-propel-navy text-white px-4 py-2 text-left font-semibold border border-gray-300;
   }
 
   .prose td {
@@ -55,6 +61,14 @@
   }
 
   .prose tr:nth-child(even) {
-    @apply bg-gray-50;
+    @apply bg-propel-gray;
+  }
+
+  .btn-primary {
+    @apply bg-propel-orange text-white font-semibold px-6 py-3 rounded-lg hover:bg-opacity-90 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-propel-blue text-white font-medium px-5 py-2 rounded-lg hover:bg-opacity-90 transition-all duration-200;
   }
 }

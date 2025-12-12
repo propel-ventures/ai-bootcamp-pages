@@ -19,21 +19,39 @@ const { title, description = 'AI Bootcamp - Learn AI Engineering' } = Astro.prop
     <title>{title} | AI Bootcamp</title>
   </head>
   <body class="min-h-screen flex flex-col">
-    <header class="bg-[--propel-navy] text-white shadow-lg">
-      <div class="max-w-6xl mx-auto px-4 md:px-8 py-4">
-        <a href="/ai-bootcamp-pages/" class="text-2xl font-bold hover:text-gray-200">
-          AI Bootcamp
+    <header class="bg-propel-navy text-white sticky top-0 z-50 shadow-lg">
+      <div class="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+        <a href="/ai-bootcamp-pages/" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+          <img src="/ai-bootcamp-pages/propel-logo.svg" alt="Propel" class="h-8 md:h-10" />
+          <span class="text-lg md:text-xl font-semibold text-propel-cyan">AI Bootcamp</span>
         </a>
+        <nav class="hidden md:flex items-center gap-6">
+          <a href="/ai-bootcamp-pages/course-1/" class="text-white/80 hover:text-propel-cyan transition-colors font-medium">Week 1</a>
+          <a href="/ai-bootcamp-pages/course-2/" class="text-white/80 hover:text-propel-cyan transition-colors font-medium">Week 2</a>
+        </nav>
       </div>
     </header>
 
-    <main class="flex-1">
+    <main class="flex-1 bg-propel-gray">
       <slot />
     </main>
 
-    <footer class="bg-gray-100 border-t border-gray-200 py-6 mt-auto">
-      <div class="max-w-6xl mx-auto px-4 md:px-8 text-center text-gray-600">
-        <p>Propel Ventures - AI Bootcamp</p>
+    <footer class="bg-propel-navy text-white py-8 mt-auto">
+      <div class="max-w-6xl mx-auto px-4 md:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <img src="/ai-bootcamp-pages/propel-logo.svg" alt="Propel" class="h-6" />
+            <span class="text-white/60 text-sm">AI Engineering Bootcamp</span>
+          </div>
+          <div class="flex items-center gap-6">
+            <a href="https://www.propelventures.com.au/" target="_blank" rel="noopener noreferrer" class="text-white/60 hover:text-propel-cyan text-sm transition-colors">
+              propelventures.com.au
+            </a>
+          </div>
+        </div>
+        <div class="mt-6 pt-6 border-t border-white/10 text-center text-white/40 text-xs">
+          <p>&copy; {new Date().getFullYear()} Propel Ventures. All rights reserved.</p>
+        </div>
       </div>
     </footer>
   </body>
