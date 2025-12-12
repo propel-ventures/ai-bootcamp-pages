@@ -25,11 +25,19 @@
   }
 
   .prose h2 {
-    @apply text-2xl font-bold text-propel-navy mt-8 mb-4;
+    @apply text-2xl font-bold text-propel-navy mt-12 mb-4 pt-8 border-t-2 border-gray-300;
+  }
+
+  .prose h2:first-of-type {
+    @apply border-t-0 mt-8 pt-0;
   }
 
   .prose h3 {
     @apply text-xl font-semibold text-propel-navy mt-6 mb-3;
+  }
+
+  .prose h4 {
+    @apply text-lg font-semibold text-propel-navy mt-5 mb-2;
   }
 
   .prose p {
