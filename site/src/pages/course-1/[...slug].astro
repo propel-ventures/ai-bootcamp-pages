@@ -3,23 +3,29 @@ import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import ResourceLink from '../../components/ResourceLink.astro';
 import ObjectivesList from '../../components/ObjectivesList.astro';
+import TableOfContents from '../../components/TableOfContents.astro';
 import Quiz from '../../components/Quiz';
 
 export async function getStaticPaths() {
   const modules = await getCollection('modules', ({ data }) => data.course === 1);
+  const allModules = modules.map(m => ({
+    slug: m.slug,
+    title: m.data.title,
+    module: m.data.module,
+  }));
   return modules.map((module) => ({
     params: { slug: module.slug.replace('course-1/', '') },
-    props: { module },
+    props: { module, allModules },
   }));
 }
 
-const { module } = Astro.props;
-const { Content } = await render(module);
+const { module, allModules } = Astro.props;
+const { Content, headings } = await render(module);
 const { title, description, objectives, resources, quiz } = module.data;
 ---
 
 <Layout title={title} description={description}>
-  <div class="max-w-4xl mx-auto px-4 md:px-8 py-12">
+  <div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
     <nav class="mb-8">
       <a href="/ai-bootcamp-pages/course-1/" class="text-blue-600 hover:text-blue-800">&larr; Back to Course 1</a>
     </nav>
@@ -32,26 +38,37 @@ const { title, description, objectives, resources, quiz } = module.data;
 
     <ObjectivesList objectives={objectives} />
 
-    <article class="prose mb-10">
-      <Content />
-    </article>
+    <div class="flex gap-8">
+      <TableOfContents
+        headings={headings}
+        modules={allModules}
+        currentSlug={module.slug}
+        courseNumber={1}
+      />
 
-    {resources && resources.length > 0 && (
-      <section class="mb-10">
-        <h2 class="text-xl font-semibold text-[--propel-navy] mb-4">Resources</h2>
-        <div class="space-y-3">
-          {resources.map((resource) => (
-            <ResourceLink title={resource.title} url={resource.url} type={resource.type} />
-          ))}
-        </div>
-      </section>
-    )}
+      <div class="min-w-0 flex-1">
+        <article class="prose mb-10">
+          <Content />
+        </article>
 
-    {quiz && quiz.length > 0 && (
-      <section class="mb-10">
-        <h2 class="text-xl font-semibold text-[--propel-navy] mb-4">Check Your Understanding</h2>
-        <Quiz client:load questions={quiz} moduleId={`course-1-${module.slug}`} />
-      </section>
-    )}
+        {resources && resources.length > 0 && (
+          <section class="mb-10">
+            <h2 class="text-xl font-semibold text-[--propel-navy] mb-4">Resources</h2>
+            <div class="space-y-3">
+              {resources.map((resource) => (
+                <ResourceLink title={resource.title} url={resource.url} type={resource.type} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {quiz && quiz.length > 0 && (
+          <section class="mb-10">
+            <h2 class="text-xl font-semibold text-[--propel-navy] mb-4">Check Your Understanding</h2>
+            <Quiz client:load questions={quiz} moduleId={`course-1-${module.slug}`} />
+          </section>
+        )}
+      </div>
+    </div>
   </div>
 </Layout>

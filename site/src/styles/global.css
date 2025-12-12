@@ -25,11 +25,19 @@
   }
 
   .prose h2 {
-    @apply text-2xl font-bold text-propel-navy mt-8 mb-4;
+    @apply text-2xl font-bold text-propel-navy mt-12 mb-4 pt-8 border-t-2 border-gray-300;
+  }
+
+  .prose h2:first-of-type {
+    @apply border-t-0 mt-8 pt-0;
   }
 
   .prose h3 {
     @apply text-xl font-semibold text-propel-navy mt-6 mb-3;
+  }
+
+  .prose h4 {
+    @apply text-lg font-semibold text-propel-navy mt-5 mb-2;
   }
 
   .prose p {
@@ -70,5 +78,14 @@
 
   .btn-secondary {
     @apply bg-propel-blue text-white font-medium px-5 py-2 rounded-lg hover:bg-opacity-90 transition-all duration-200;
+  }
+
+  /* Table of Contents */
+  .toc-link {
+    @apply text-gray-600 hover:text-propel-blue border-l-2 border-transparent -ml-[2px];
+  }
+
+  .toc-link.active {
+    @apply text-propel-blue font-medium border-l-2 border-propel-blue;
   }
 }
