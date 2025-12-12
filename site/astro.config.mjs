@@ -7,4 +7,5 @@ export default defineConfig({
   base: '/ai-bootcamp-pages',
   integrations: [react(), tailwind()],
   output: 'static',
+  trailingSlash: 'always',
 });
