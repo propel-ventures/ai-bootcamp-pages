@@ -1,0 +1,22 @@
+# Astro
+site/.astro/
+site/dist/
+site/node_modules/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

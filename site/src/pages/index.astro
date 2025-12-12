@@ -1,0 +1,35 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CourseCard from '../components/CourseCard.astro';
+---
+
+<Layout title="Home">
+  <div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
+    <section class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-[--propel-navy] mb-4">
+        AI Engineering Bootcamp
+      </h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        A two-week intensive program covering AI-powered development,
+        context engineering, agentic workflows, and production systems.
+      </p>
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-6">
+      <CourseCard
+        title="Elements of AI Engineering"
+        week="Week 1"
+        description="Master AI coding assistants, working with models, context engineering, MCP, and enterprise foundations."
+        href="/ai-bootcamp/course-1/"
+        moduleCount={5}
+      />
+      <CourseCard
+        title="AI Workflows & Engineering"
+        week="Week 2"
+        description="Build production-ready AI workflows with frameworks, agentic development, and human-in-the-loop patterns."
+        href="/ai-bootcamp/course-2/"
+        moduleCount={5}
+      />
+    </section>
+  </div>
+</Layout>

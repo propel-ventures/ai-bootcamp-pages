@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ModuleCard from '../../components/ModuleCard.astro';
+
+const modules = await getCollection('modules', ({ data }) => data.course === 1);
+const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
+---
+
+<Layout title="Course 1: Elements of AI Engineering">
+  <div class="max-w-4xl mx-auto px-4 md:px-8 py-12">
+    <nav class="mb-8">
+      <a href="/ai-bootcamp/" class="text-blue-600 hover:text-blue-800">&larr; Back to courses</a>
+    </nav>
+
+    <header class="mb-10">
+      <span class="text-sm font-medium text-gray-500">Week 1</span>
+      <h1 class="text-3xl md:text-4xl font-bold text-[--propel-navy] mt-1 mb-4">
+        Elements of AI Engineering
+      </h1>
+      <p class="text-lg text-gray-600">
+        Master the fundamentals of AI-powered development, from coding assistants to enterprise foundations.
+      </p>
+    </header>
+
+    <section class="space-y-4">
+      {sortedModules.map((module) => (
+        <ModuleCard
+          title={module.data.title}
+          module={module.data.module}
+          description={module.data.description}
+          href={`/ai-bootcamp/course-1/${module.slug.replace('course-1/', '')}/`}
+        />
+      ))}
+    </section>
+  </div>
+</Layout>
