@@ -628,12 +628,11 @@ MEMORY__MAX_THREAD_MESSAGES=50
 
 ### 8. PDF Tooling
 
-Extract text from documents for RAG pipelines.
+Extract text from documents for context injection or RAG pipelines. The right tool depends on your document complexity.
 
-**Tools:**
-- **PyMuPDF (fitz)** - Fast, reliable PDF text extraction (used in bootcamp app)
-- **Docling** - IBM's document processing library for complex documents
-- Best practices for chunking and metadata extraction
+#### PyMuPDF (fitz) - Simple and Fast
+
+Best for straightforward text extraction from standard PDFs.
 
 ```python
 # Simple extraction with PyMuPDF (from bootcamp app)
@@ -643,6 +642,93 @@ def extract_text(pdf_bytes: bytes) -> str:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     return "\n\n".join(page.get_text() for page in doc)
 ```
+
+**Pros:** Fast, lightweight, no external dependencies
+**Cons:** Struggles with complex layouts, tables, and images
+
+#### Docling - Enterprise Document Understanding
+
+[Docling](https://ds4sd.github.io/docling/) is IBM's open-source library for parsing complex documents. It goes beyond simple text extraction to understand document structure.
+
+**What Docling handles that PyMuPDF doesn't:**
+
+| Feature | PyMuPDF | Docling |
+|---------|---------|---------|
+| Basic text extraction | ✅ | ✅ |
+| Table extraction | ❌ | ✅ (as structured data) |
+| Image extraction | Basic | ✅ (with captions) |
+| Layout understanding | ❌ | ✅ (headers, sections, lists) |
+| Multi-format support | PDF only | PDF, DOCX, PPTX, HTML, images |
+| OCR for scanned docs | ❌ | ✅ |
+| Markdown output | ❌ | ✅ |
+
+**Installation:**
+
+```bash
+pip install docling
+```
+
+**Basic Usage:**
+
+```python
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+result = converter.convert("document.pdf")
+
+# Get markdown representation (great for LLM context)
+markdown = result.document.export_to_markdown()
+
+# Access structured elements
+for table in result.document.tables:
+    print(table.export_to_dataframe())  # Tables as pandas DataFrames
+```
+
+**Why Markdown output matters:**
+
+LLMs understand markdown structure. Docling preserves:
+- Headings hierarchy (`#`, `##`, `###`)
+- Tables in markdown format
+- Lists and bullet points
+- Code blocks
+- Image references with captions
+
+```python
+# Example: Converting a technical PDF for RAG
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+result = converter.convert("technical_manual.pdf")
+
+# This markdown preserves structure the LLM can reason about
+context = result.document.export_to_markdown()
+
+# Now inject into your prompt
+prompt = f"""Based on this documentation:
+
+{context}
+
+Answer: How do I configure the system?"""
+```
+
+#### When to Use Each
+
+| Scenario | Recommended Tool |
+|----------|------------------|
+| Simple text PDFs (articles, reports) | PyMuPDF |
+| PDFs with tables you need to query | Docling |
+| Scanned documents | Docling (with OCR) |
+| Mixed document types (PDF, DOCX, PPTX) | Docling |
+| Maximum speed, minimal dependencies | PyMuPDF |
+| Complex layouts (multi-column, figures) | Docling |
+
+#### Best Practices for Document Processing
+
+1. **Preserve structure** - Use markdown output to maintain headings and sections
+2. **Handle tables specially** - Extract tables as structured data, not flattened text
+3. **Add metadata** - Track source document, page numbers, section titles
+4. **Chunk intelligently** - Split at section boundaries, not arbitrary character counts
+5. **Test with real documents** - Your production documents may have quirks
 
 ## Hands-On Exercise
 
