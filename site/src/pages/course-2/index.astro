@@ -10,7 +10,7 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
 <Layout title="Course 2: AI Workflows & Engineering">
   <div class="max-w-4xl mx-auto px-4 md:px-8 py-12">
     <nav class="mb-8">
-      <a href="/ai-bootcamp/" class="text-blue-600 hover:text-blue-800">&larr; Back to courses</a>
+      <a href="/ai-bootcamp-pages/" class="text-blue-600 hover:text-blue-800">&larr; Back to courses</a>
     </nav>
 
     <header class="mb-10">
@@ -30,7 +30,7 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
             title={module.data.title}
             module={module.data.module}
             description={module.data.description}
-            href={`/ai-bootcamp/course-2/${module.slug.replace('course-2/', '')}/`}
+            href={`/ai-bootcamp-pages/course-2/${module.slug.replace('course-2/', '')}/`}
           />
         ))
       ) : (
