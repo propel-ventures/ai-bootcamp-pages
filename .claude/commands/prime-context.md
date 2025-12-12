@@ -1,0 +1,1 @@
+read the CLAUDE.md file for details on the project and execute the steps in the Context Priming section
