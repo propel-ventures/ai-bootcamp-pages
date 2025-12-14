@@ -22,6 +22,9 @@ resources:
   - title: "Bootcamp App - Memory Module"
     url: "https://github.com/propel-ventures/ai-bootcamp/tree/main/ai-bootcamp-app/backend/app/memory"
     type: "repo"
+  - title: "Conversation Sync Service"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/conversation_sync.py"
+    type: "repo"
   - title: "Memory Architecture Documentation"
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/memory.md"
     type: "docs"
@@ -529,6 +532,31 @@ Without memory, every agent interaction starts fresh:
 - Multi-turn conversations lose coherence
 - Personalization is impossible
 
+#### Hybrid Dual-Layer Architecture
+
+The bootcamp app uses a **hybrid memory architecture** combining fast access with permanent storage:
+
+| Layer | Storage | Purpose | Latency | Retention |
+|-------|---------|---------|---------|-----------|
+| **L1 Cache** | Redis | Fast access for active conversations | ~1ms | 24 hours TTL |
+| **L2 Storage** | PostgreSQL | Permanent conversation history | ~10ms | Permanent |
+
+**How they connect**: The `thread_id` links both layers. Redis stores messages at `thread:{thread_id}:messages`, and PostgreSQL has a `conversations` table with a unique `thread_id` column that references the same identifier.
+
+```
+Redis Key                         PostgreSQL
+─────────────────────            ──────────────────────────────
+thread:{thread_id}:messages  ←→  conversations.thread_id (UNIQUE)
+                                       │
+                                       ↓
+                                 messages.conversation_id
+```
+
+This enables:
+- **Fast retrieval**: Check Redis first for active conversations
+- **Hydration**: If Redis TTL expired, reload from PostgreSQL and repopulate cache
+- **Permanent history**: Conversations are never lost after Redis expiration
+
 #### Memory vs RAG: When to Use Each
 
 | Use Case | Solution | Why |
@@ -544,21 +572,44 @@ Without memory, every agent interaction starts fresh:
 
 **Thread Memory (Short-term)**
 
-Scoped to a single conversation, stores message history in sequence.
+Scoped to a single conversation, stores message history in sequence. The `ThreadMemoryProvider` uses a **hybrid retrieval strategy**:
+
+1. First checks Redis for fast access
+2. If Redis is empty (TTL expired), hydrates from PostgreSQL
+3. Falls back to PostgreSQL-only if Redis is unavailable
 
 ```python
 # From ai-bootcamp-app/backend/app/memory/thread_provider.py
 class ThreadMemoryProvider:
-    """Provides conversation history for a specific thread."""
+    """Provides conversation history with hybrid Redis/PostgreSQL retrieval."""
 
-    def __init__(self, redis: Redis | None, settings: MemorySettings, thread_id: str):
+    def __init__(self, redis: Redis | None, db_session: Session, settings: MemorySettings, thread_id: str):
         self._redis = redis
+        self._db_session = db_session
         self._settings = settings
         self._key = f"thread:{thread_id}:messages"
+        self._thread_id = thread_id
+
+    async def invoking(self) -> str:
+        """Get context - Redis first, hydrate from PostgreSQL if needed."""
+        messages = []
+
+        if self._redis:
+            raw = await self._redis.lrange(self._key, 0, -1)
+            if raw:
+                messages = [json.loads(m) for m in raw]
+            elif self._db_session:
+                # Redis empty - hydrate from PostgreSQL
+                messages = await self._hydrate_from_db()
+        elif self._db_session:
+            messages = await self._get_messages_from_db()
+
+        # Format for context injection...
 ```
 
-- Short TTL (24 hours default)
-- Enables: "What did I just ask?" continuity
+- Short TTL in Redis (24 hours default)
+- Permanent storage in PostgreSQL
+- Automatic sync via `ConversationSyncService`
 
 📁 **See implementation:** [thread_provider.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/thread_provider.py)
 
@@ -596,11 +647,22 @@ Not all memories are equal. Strategies include:
 
 #### Storage Options
 
+The bootcamp app uses a **hybrid approach** combining Redis and PostgreSQL:
+
+| Layer | Tool | Role | Notes |
+|-------|------|------|-------|
+| **L1 Cache** | Redis | Fast access, TTL-based expiration | Sub-millisecond reads for active conversations |
+| **L2 Storage** | PostgreSQL | Permanent history | Conversations and messages tables |
+| **Sync** | ConversationSyncService | Async persistence | Fire-and-forget sync to PostgreSQL |
+
+**Why hybrid?** Redis provides speed for active conversations, PostgreSQL ensures history is never lost. The `ConversationSyncService` bridges them asynchronously without blocking user interactions.
+
+**Alternative options:**
+
 | Tool | Best For | Notes |
 |------|----------|-------|
-| **Redis** | Fast key-value, lists, TTL | Production standard, simple |
 | **Mem0** | Intelligent memory layer | Auto-extracts facts, manages decay |
-| **PostgreSQL** | Relational + vector | When you need SQL + embeddings |
+| **pgvector** | Relational + vector | When you need SQL + embeddings |
 | **In-memory** | Development/testing | No persistence, simple |
 
 #### Configuration
@@ -624,7 +686,7 @@ MEMORY__MAX_THREAD_MESSAGES=50
 
 📁 **See configuration:** [config.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/config.py)
 
-> **Deep Dive**: See [Course 2, Module 3: Memory Management with Redis](/ai-bootcamp-pages/course-2/03-memory-management/) for production implementation patterns including the Context Provider pattern, TTL-based cleanup, and graceful degradation.
+> **Deep Dive**: See [Course 2, Module 3: Memory Management - Hybrid Redis + PostgreSQL Architecture](/ai-bootcamp-pages/course-2/03-memory-management/) for production implementation patterns including the Context Provider pattern, ConversationSyncService, database schemas, and graceful degradation strategies.
 
 ### 8. PDF Tooling
 
