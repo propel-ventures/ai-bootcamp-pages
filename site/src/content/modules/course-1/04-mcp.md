@@ -18,6 +18,12 @@ resources:
   - title: "MCP Python SDK"
     url: "https://github.com/modelcontextprotocol/python-sdk"
     type: "repo"
+  - title: "MCP C# / .NET SDK"
+    url: "https://github.com/modelcontextprotocol/csharp-sdk"
+    type: "repo"
+  - title: "Auth0 - Auth for MCP Servers"
+    url: "https://auth0.com/ai/docs/mcp/auth-for-mcp"
+    type: "docs"
   - title: "Crypto Wallet MCP Server (Bootcamp)"
     url: "https://github.com/propel-ventures/ai-bootcamp/tree/main/mcp-servers/crypto-wallet"
     type: "repo"
@@ -171,6 +177,103 @@ if __name__ == "__main__":
 - **Type annotations**: Use Python type hints for parameter descriptions
 - **Built-in transport support**: Switch between stdio and HTTP easily
 
+## Cross-Language Implementation
+
+MCP is language-agnostic - official SDKs exist for **Python**, **TypeScript**, and **C#/.NET**. The patterns are consistent across all three, making it easy for engineers from different backgrounds to contribute.
+
+### Side-by-Side Comparison
+
+Here's how the same tool looks across all three languages:
+
+#### Python (FastMCP)
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("crypto-wallet")
+
+@mcp.tool()
+def get_balance(currency: str) -> dict:
+    """Get the balance for a specific currency."""
+    return {"currency": currency, "balance": wallet_state["balances"].get(currency, 0)}
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
+```
+
+#### TypeScript
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const server = new McpServer({ name: "crypto-wallet", version: "1.0.0" });
+
+server.tool(
+  "get_balance",
+  "Get the balance for a specific currency",
+  { currency: { type: "string", description: "Currency code" } },
+  async ({ currency }) => {
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({ currency, balance: walletState.balances[currency] ?? 0 })
+      }]
+    };
+  }
+);
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+#### C# / .NET
+
+```csharp
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+
+var builder = McpServerBuilder.Create(args);
+
+builder.WithTools<WalletTools>();
+
+var server = builder.Build();
+await server.RunAsync();
+
+public class WalletTools
+{
+    [McpTool("get_balance"), Description("Get the balance for a specific currency")]
+    public static BalanceResult GetBalance(string currency)
+    {
+        return new BalanceResult
+        {
+            Currency = currency,
+            Balance = WalletState.Balances.GetValueOrDefault(currency, 0)
+        };
+    }
+}
+```
+
+### Pattern Mapping
+
+| Concept | Python | TypeScript | C# / .NET |
+|---------|--------|------------|-----------|
+| **Server creation** | `FastMCP("name")` | `new McpServer({name})` | `McpServerBuilder.Create()` |
+| **Tool registration** | `@mcp.tool()` decorator | `server.tool()` method | `[McpTool]` attribute |
+| **Tool description** | Docstring | Second parameter | `[Description]` attribute |
+| **Type definitions** | Type hints | Schema object | Strong typing + attributes |
+| **Transport** | `mcp.run(transport="stdio")` | `StdioServerTransport()` | `builder.Build().RunAsync()` |
+
+### Choosing Your SDK
+
+| Language | Best For | Package |
+|----------|----------|---------|
+| **Python** | Rapid prototyping, data science integrations, bootcamp exercises | `mcp` |
+| **TypeScript** | Web-first teams, Node.js backends, frontend integration | `@modelcontextprotocol/sdk` |
+| **C# / .NET** | Enterprise environments, existing .NET infrastructure, strongly-typed codebases | `ModelContextProtocol` |
+
+All three SDKs implement the same MCP specification, so servers written in any language can be used by any MCP client. Choose the language that fits your team's expertise and existing infrastructure.
+
 ## Progressive Tool Exposure
 
 A critical security pattern in MCP is **progressive tool exposure** - organising tools by risk level and exposing them incrementally.
@@ -256,6 +359,76 @@ return {
 
 ### 4. Separation of Concerns
 Keep read and write operations clearly separated in your code structure.
+
+## Authentication for Remote MCP Servers
+
+When deploying MCP servers over HTTP (rather than local stdio), authentication becomes critical. The MCP specification standardises authentication using **OAuth 2.1**, treating MCP servers as OAuth Resource Servers.
+
+### The Authentication Model
+
+```
+┌──────────────┐     1. Auth Request      ┌─────────────────┐
+│   MCP Client │ ───────────────────────► │  Auth Provider  │
+│  (AI Agent)  │                          │  (e.g. Auth0)   │
+└──────┬───────┘ ◄─────────────────────── └─────────────────┘
+       │              2. Access Token
+       │
+       │ 3. Request + Bearer Token
+       ▼
+┌──────────────┐     4. Validate Token    ┌─────────────────┐
+│  MCP Server  │ ───────────────────────► │  Auth Provider  │
+│  (Protected) │ ◄─────────────────────── │                 │
+└──────────────┘     5. Token Valid       └─────────────────┘
+```
+
+### Key Principles
+
+1. **Bearer tokens only** - The MCP spec prohibits session-based auth; every request must include a valid access token
+2. **Verify every request** - Tokens must be validated on every inbound request to protected endpoints
+3. **Scoped permissions** - Use OAuth scopes to limit what actions an agent can perform
+
+### Auth0 for MCP
+
+Auth0 provides a purpose-built solution for MCP authentication:
+
+- **OAuth 2.1 / OIDC compliance** - Standards-based token issuance and validation
+- **Identity provider federation** - Connect to Okta, Entra ID, Google Workspace, etc.
+- **Dynamic client registration** - MCP clients can discover and register automatically
+- **Token Vault** - Managed token lifecycle for third-party API access (Google, Jira, Notion)
+
+```python
+# Example: Protected MCP server with token validation
+from mcp.server.fastmcp import FastMCP
+from functools import wraps
+
+mcp = FastMCP("protected-server")
+
+def require_auth(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        token = get_bearer_token_from_request()
+        if not await validate_token_with_auth0(token):
+            return {"error": "Unauthorized"}
+        return await func(*args, **kwargs)
+    return wrapper
+
+@mcp.tool()
+@require_auth
+async def sensitive_operation(data: str) -> dict:
+    """A protected tool that requires authentication."""
+    return {"result": "Success"}
+```
+
+### When to Add Authentication
+
+| Deployment | Authentication Needed? |
+|------------|----------------------|
+| **Local stdio** (Claude Desktop) | No - process isolation provides security |
+| **Remote HTTP** (single user) | Recommended - protect against unauthorised access |
+| **Remote HTTP** (multi-tenant) | Required - identify users and enforce permissions |
+| **Production API** | Required - with scopes for granular access control |
+
+For production deployments, consider Auth0's MCP integration which handles the OAuth complexity and provides enterprise features like SSO and audit logging.
 
 ## Practical Example: Crypto Wallet MCP Server
 
