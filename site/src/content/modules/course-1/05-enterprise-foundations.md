@@ -443,8 +443,8 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Agent Framework                               │
-│                                                                  │
+│                    Agent Framework                              │
+│                                                                 │
 │  gen_ai.usage.input_tokens  ──►  llm.token_count.prompt         │
 │  gen_ai.usage.output_tokens ──►  llm.token_count.completion     │
 │  gen_ai.request.model       ──►  llm.model_name                 │
@@ -453,9 +453,9 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Phoenix                                  │
-│                                                                  │
-│  Model Pricing Configuration:                                    │
+│                         Phoenix                                 │
+│                                                                 │
+│  Model Pricing Configuration:                                   │
 │  ┌─────────────────┬────────────────┬────────────────┐          │
 │  │ Model           │ Input $/1M     │ Output $/1M    │          │
 │  ├─────────────────┼────────────────┼────────────────┤          │
