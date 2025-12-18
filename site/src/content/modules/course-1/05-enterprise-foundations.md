@@ -473,22 +473,22 @@ The security layer operates at two levels:
 2. **Streaming Scanner** - Scans both user inputs and LLM outputs during AG-UI streaming, logging detections to OpenTelemetry spans
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                       FastAPI Application                       │
-│                                                                 │
-│  Request → PIIDetectionMiddleware → AG-UI Endpoint              │
-│                                      ├── scan_input()           │
-│                                      ├── LLM Processing         │
-│                                      └── scan_complete_response()│
-│                                                                 │
-│  All detections logged to OpenTelemetry spans                   │
-└─────────────────────────────────┬───────────────────────────────┘
-                                  │ OTLP gRPC
-                                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                            Phoenix                              │
-│  Filter by: pii.detected=true | pii.entity_types | pii.source  │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                        FastAPI Application                        │
+│                                                                   │
+│  Request → PIIDetectionMiddleware → AG-UI Endpoint                │
+│                                      ├── scan_input()             │
+│                                      ├── LLM Processing           │
+│                                      └── scan_complete_response() │
+│                                                                   │
+│  All detections logged to OpenTelemetry spans                     │
+└──────────────────────────────────┬────────────────────────────────┘
+                                   │ OTLP gRPC
+                                   ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                             Phoenix                               │
+│  Filter by: pii.detected=true | pii.entity_types | pii.source    │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ### How It Works
