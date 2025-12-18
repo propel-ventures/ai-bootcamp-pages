@@ -26,6 +26,12 @@ resources:
   - title: "Presidio PII Detection"
     url: "https://microsoft.github.io/presidio/"
     type: "docs"
+  - title: "AI Bootcamp Security Architecture"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/security.md"
+    type: "docs"
+  - title: "AI Bootcamp PII Detector Implementation"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/security/pii_detector.py"
+    type: "repo"
   - title: "AI Bootcamp Cost Processor Implementation"
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/observability/cost_processor.py"
     type: "repo"
@@ -105,6 +111,34 @@ quiz:
       - "To enable accurate cost calculation based on model-specific pricing"
       - "To improve response quality"
       - "To reduce latency"
+    answer: 1
+  - question: "What does the PIIDetectionMiddleware add to responses when PII is detected?"
+    options:
+      - "A 403 Forbidden status code"
+      - "An X-PII-Detected: true header"
+      - "A JSON error body"
+      - "A redirect to a warning page"
+    answer: 1
+  - question: "What library does the PII detector use for entity recognition?"
+    options:
+      - "spaCy directly"
+      - "Microsoft Presidio"
+      - "OpenAI content moderation"
+      - "AWS Comprehend"
+    answer: 1
+  - question: "What is the purpose of the confidence_threshold setting in PII detection?"
+    options:
+      - "To set the maximum number of entities to detect"
+      - "To filter out low-confidence detections and reduce false positives"
+      - "To determine how fast the detection runs"
+      - "To set the minimum text length for scanning"
+    answer: 1
+  - question: "When should PII_LOG_ONLY be set to false?"
+    options:
+      - "Always in production"
+      - "When you want to block requests containing PII"
+      - "When running in development mode"
+      - "When using streaming endpoints"
     answer: 1
 ---
 
@@ -428,10 +462,129 @@ def test_observability_settings_from_env():
 ---
 
 ## Security
-- Prompt injection detection
-- MCP-Scan for tool permissions
-- Presidio for PII handling
-- Toxic flow analysis
+
+Production AI systems face unique security challenges: PII leakage in prompts/responses, prompt injection attacks, and sensitive data exposure in observability traces. The AI Bootcamp application implements a comprehensive security layer using **Microsoft Presidio** for PII detection with full **OpenTelemetry integration**.
+
+### Security Architecture
+
+The security layer operates at two levels:
+
+1. **Request-Time Middleware** - Scans all POST/PUT requests for PII before processing
+2. **Streaming Scanner** - Scans both user inputs and LLM outputs during AG-UI streaming, logging detections to OpenTelemetry spans
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    FastAPI Application                           │
+│                                                                  │
+│  Request → PIIDetectionMiddleware → AG-UI Endpoint              │
+│                                      ├── scan_input()            │
+│                                      ├── LLM Processing          │
+│                                      └── scan_complete_response()│
+│                                                                  │
+│  All detections logged to OpenTelemetry spans                   │
+└──────────────────────────────────┬──────────────────────────────┘
+                                   │ OTLP gRPC
+                                   ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                          Phoenix                                 │
+│  Filter by: pii.detected=true | pii.entity_types | pii.source   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### How It Works
+
+The **PIIDetector** wraps Microsoft Presidio to detect 10 entity types: credit cards, SSNs, emails, phone numbers, IBANs, crypto addresses, IP addresses, passports, driver's licenses, and bank account numbers.
+
+The **PIIDetectionMiddleware** intercepts requests, extracts text from JSON bodies (handling various formats like `messages[].content`, `prompt`, `query`), and logs detections with structured metadata. When PII is found, it adds an `X-PII-Detected: true` header to the response.
+
+The **StreamingPIIScanner** integrates with OpenTelemetry to log PII events as span attributes and events, making them visible in Phoenix for monitoring and compliance.
+
+### Configuration
+
+Configure PII detection via environment variables:
+
+```bash
+PII_ENABLED=true                   # Master switch
+PII_LOG_ONLY=true                  # Log only (true) or block requests (false)
+PII_CONFIDENCE_THRESHOLD=0.7       # Detection confidence threshold (0.0-1.0)
+```
+
+### Hands-On: Testing PII Detection
+
+Try these exercises with the running AI Bootcamp application to see PII detection in action.
+
+#### Exercise 1: Test PII in Chat Messages
+
+With the application running (frontend + backend + Phoenix), open the chat UI and send messages containing different types of PII:
+
+| Test Message | Expected Detection |
+|--------------|-------------------|
+| "My card number is 4111-1111-1111-1111" | `CREDIT_CARD` |
+| "My SSN is 123-45-6789" | `US_SSN` |
+| "Contact me at user@example.com" | `EMAIL_ADDRESS` |
+| "Call me at +1-555-123-4567" | `PHONE_NUMBER` |
+
+**What to observe in the backend logs:**
+- `PII detected in request` warnings
+- `entity_types` and `confidences` in the structured log output
+
+#### Exercise 2: View PII Events in Phoenix
+
+1. Open Phoenix at **http://localhost:6006**
+2. Navigate to the **Traces** view
+3. Look for spans named `pii_scan_input` and `pii_scan_output`
+4. Click on a span to see attributes:
+   - `pii.detected`: true/false
+   - `pii.entity_count`: number of entities found
+   - `pii.entity_types`: array like `["CREDIT_CARD", "EMAIL_ADDRESS"]`
+5. Check the **Events** tab for detailed `pii.detected` events with confidence scores
+
+**Pro tip:** Use Phoenix's filter to find all PII incidents: filter spans where `pii.detected = true`
+
+#### Exercise 3: Test Clean Messages
+
+Send messages without PII through the chat UI to verify no false positives:
+
+- "What is compound interest?"
+- "How does a 401(k) work?"
+- "Explain the Rule of 72"
+
+Check Phoenix—the `pii.detected` attribute should be `false` for these messages.
+
+#### Exercise 4: Experiment with Confidence Threshold
+
+Adjust `PII_CONFIDENCE_THRESHOLD` in your `.env` file (default is `0.7`) and restart the backend. Test with ambiguous text like partial phone numbers (`555-1234`) to see how the threshold affects detection sensitivity.
+
+### Detected PII Types
+
+| Entity Type | Example | Use Case |
+|-------------|---------|----------|
+| `CREDIT_CARD` | 4111-1111-1111-1111 | Payment data |
+| `US_SSN` | 123-45-6789 | Identity protection |
+| `EMAIL_ADDRESS` | user@example.com | Contact info |
+| `PHONE_NUMBER` | +1-555-123-4567 | Contact info |
+| `IBAN_CODE` | DE89370400440532013000 | Banking |
+| `CRYPTO` | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | Wallet addresses |
+| `IP_ADDRESS` | 192.168.1.1 | Network data |
+
+### Production Checklist
+
+| Setting | Production Value | Purpose |
+|---------|------------------|---------|
+| `PII_ENABLED` | `true` | Enable scanning |
+| `PII_LOG_ONLY` | `true` or `false` | `false` to block requests |
+| `PII_CONFIDENCE_THRESHOLD` | `0.7` | Balance false positives/negatives |
+| `OTEL_ENABLE_OTEL` | `true` | Phoenix visibility |
+| `OTEL_ENABLE_SENSITIVE_DATA` | `false` | Prevent PII in traces |
+
+### Further Reading
+
+Explore the implementation in the AI Bootcamp repository:
+- `app/security/config.py` - Configuration with Pydantic Settings
+- `app/security/pii_detector.py` - Presidio wrapper implementation
+- `app/security/middleware.py` - Request-time middleware
+- `app/security/streaming_pii_scanner.py` - OpenTelemetry integration
+- `tests/security/` - Comprehensive test suite
 
 ### Cost Management
 
