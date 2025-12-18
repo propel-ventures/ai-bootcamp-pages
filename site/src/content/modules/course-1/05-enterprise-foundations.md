@@ -166,23 +166,23 @@ The evaluation framework uses **DeepEval** for multi-dimensional testing:
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                         Test Suite (tests/evals/)                          │
 │                                                                            │
-│  ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐  │
-│  │ test_correctness   │  │ test_hallucination  │  │ test_safety        │  │
-│  │                    │  │                     │  │                    │  │
-│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection │  │
-│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries│  │
-│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection   │  │
-│  └────────────────────┘  └─────────────────────┘  └────────────────────┘  │
+│  ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐   │
+│  │ test_correctness   │  │ test_hallucination  │  │ test_safety        │   │
+│  │                    │  │                     │  │                    │   │
+│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection │   │
+│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries│   │
+│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection   │   │
+│  └────────────────────┘  └─────────────────────┘  └────────────────────┘   │
 └────────────────────────────────────────────────────────────────────────────┘
                                      │
                                      ▼
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                           DeepEval Metrics                                 │
 │                                                                            │
-│  ┌───────────────────────┐  ┌──────────────────────┐  ┌────────────────┐  │
-│  │ AnswerRelevancyMetric │  │ HallucinationMetric  │  │ ToxicityMetric │  │
-│  │   threshold: 0.7      │  │   threshold: 0.5     │  │ threshold: 0.5 │  │
-│  └───────────────────────┘  └──────────────────────┘  └────────────────┘  │
+│  ┌───────────────────────┐  ┌──────────────────────┐  ┌────────────────┐   │
+│  │ AnswerRelevancyMetric │  │ HallucinationMetric  │  │ ToxicityMetric │   │
+│  │   threshold: 0.7      │  │   threshold: 0.5     │  │ threshold: 0.5 │   │
+│  └───────────────────────┘  └──────────────────────┘  └────────────────┘   │
 │                                                                            │
 │  ┌───────────────────────┐                                                 │
 │  │  FaithfulnessMetric   │   Judge Model: gpt-5-mini (Azure or OpenAI)     │
@@ -487,7 +487,7 @@ The security layer operates at two levels:
                                    ▼
 ┌───────────────────────────────────────────────────────────────────┐
 │                             Phoenix                               │
-│  Filter by: pii.detected=true | pii.entity_types | pii.source    │
+│  Filter by: pii.detected=true | pii.entity_types | pii.source     │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
