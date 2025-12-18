@@ -26,6 +26,15 @@ resources:
   - title: "Presidio PII Detection"
     url: "https://microsoft.github.io/presidio/"
     type: "docs"
+  - title: "AI Bootcamp Cost Processor Implementation"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/observability/cost_processor.py"
+    type: "repo"
+  - title: "AI Bootcamp Observability Architecture (Token Economics)"
+    url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/observability.md"
+    type: "docs"
+  - title: "LiteLLM Documentation"
+    url: "https://docs.litellm.ai/"
+    type: "docs"
 quiz:
   - question: "What is the primary purpose of structured logging in AI systems?"
     options:
@@ -75,6 +84,27 @@ quiz:
       - "Correctness, hallucination, and safety tests"
       - "Performance, load, and stress tests"
       - "Syntax, semantic, and logic tests"
+    answer: 1
+  - question: "What does the CostMappingExporter do in the observability stack?"
+    options:
+      - "Reduces the cost of API calls"
+      - "Maps GenAI token attributes to OpenInference format for Phoenix cost calculation"
+      - "Exports cost reports to spreadsheets"
+      - "Caches responses to reduce token usage"
+    answer: 1
+  - question: "Which caching strategy reduces token usage through context reuse?"
+    options:
+      - "Using larger context windows"
+      - "Hybrid Redis/PostgreSQL cache with L1/L2 layers"
+      - "Increasing max_tokens parameter"
+      - "Using more expensive models"
+    answer: 1
+  - question: "Why is provider inference important for token economics?"
+    options:
+      - "To route requests to the cheapest provider"
+      - "To enable accurate cost calculation based on model-specific pricing"
+      - "To improve response quality"
+      - "To reduce latency"
     answer: 1
 ---
 
@@ -404,9 +434,141 @@ def test_observability_settings_from_env():
 - Toxic flow analysis
 
 ### Cost Management
-- Token economics
-- LMCache and LiteLLM caching
-- Usage monitoring
+
+Production AI systems require careful cost management. Token usage directly impacts operational costs, and without proper tracking, expenses can spiral quickly.
+
+#### Token Economics Architecture
+
+The AI Bootcamp application implements a **CostMappingExporter** that transforms GenAI semantic conventions to OpenInference format for Phoenix cost calculation:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Agent Framework                              │
+│                                                                 │
+│  gen_ai.usage.input_tokens  ──►  llm.token_count.prompt         │
+│  gen_ai.usage.output_tokens ──►  llm.token_count.completion     │
+│  gen_ai.request.model       ──►  llm.model_name                 │
+│  (inferred)                 ──►  llm.provider                   │
+└─────────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         Phoenix                                 │
+│                                                                 │
+│  Model Pricing Configuration:                                   │
+│  ┌─────────────────┬────────────────┬────────────────┐          │
+│  │ Model           │ Input $/1M     │ Output $/1M    │          │
+│  ├─────────────────┼────────────────┼────────────────┤          │
+│  │ claude-haiku-4-5│ $0.25          │ $1.25          │          │
+│  │ claude-sonnet-4 │ $3.00          │ $15.00         │          │
+│  │ gpt-4o-mini     │ $0.15          │ $0.60          │          │
+│  │ gpt-4o          │ $2.50          │ $10.00         │          │
+│  └─────────────────┴────────────────┴────────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Cost Processor Implementation
+
+The `CostMappingExporter` maps token attributes from the Agent Framework to Phoenix-readable format:
+
+```python
+def map_genai_to_openinference(attributes: dict) -> dict:
+    """Map GenAI semantic conventions to OpenInference format."""
+    mapped = {}
+
+    # Token counts
+    if "gen_ai.usage.input_tokens" in attributes:
+        mapped["llm.token_count.prompt"] = attributes["gen_ai.usage.input_tokens"]
+    if "gen_ai.usage.output_tokens" in attributes:
+        mapped["llm.token_count.completion"] = attributes["gen_ai.usage.output_tokens"]
+
+    # Calculate total
+    prompt = mapped.get("llm.token_count.prompt", 0)
+    completion = mapped.get("llm.token_count.completion", 0)
+    if prompt or completion:
+        mapped["llm.token_count.total"] = prompt + completion
+
+    # Model and provider
+    model = attributes.get("gen_ai.response.model") or attributes.get("gen_ai.request.model")
+    if model:
+        mapped["llm.model_name"] = model
+        mapped["llm.provider"] = infer_provider(model)
+
+    return mapped
+```
+
+#### Provider Inference
+
+The system automatically infers the LLM provider from model names for accurate cost calculation:
+
+```python
+def infer_provider(model_name: str) -> str:
+    """Infer the LLM provider from the model name."""
+    model_lower = model_name.lower()
+    patterns = {
+        "openai": ["gpt-", "o1-", "o3-"],
+        "anthropic": ["claude"],
+        "google": ["gemini"],
+        "meta": ["llama"],
+        "microsoft": ["phi"],
+        "mistral": ["mistral", "mixtral"],
+    }
+    for provider, keywords in patterns.items():
+        if any(kw in model_lower for kw in keywords):
+            return provider
+    return "unknown"
+```
+
+#### Caching for Cost Reduction
+
+**LiteLLM** provides a unified interface with built-in cost tracking and caching:
+
+```python
+from litellm import completion
+
+# LiteLLM tracks costs automatically
+response = completion(
+    model="claude-haiku-4-5",
+    messages=[{"role": "user", "content": "Hello"}],
+    caching=True  # Enable response caching
+)
+
+# Access cost information
+print(f"Cost: ${response._hidden_params.get('response_cost', 0):.6f}")
+```
+
+**Memory caching** reduces token usage through context reuse:
+
+- **L1 Cache (Redis)**: 24-hour TTL for conversation threads
+- **L2 Store (PostgreSQL)**: Persistent storage with cache hydration
+- **Document Cache**: In-memory layer for retrieved documents
+
+#### Enabling Cost Tracking
+
+Configure cost tracking via environment variables:
+
+```bash
+OTEL_ENABLE_OTEL=true
+OTEL_OTLP_ENDPOINT=http://localhost:4317
+OTEL_ENABLE_COST_TRACKING=true
+```
+
+View costs in Phoenix:
+- **Trace Details**: Per-request token counts and costs
+- **Projects View**: Aggregated costs by model
+- **Experiments**: Cost comparison across configurations
+
+#### Infrastructure-Level Token Monitoring
+
+Beyond application-level tracking, cloud platforms provide their own token usage metrics at the infrastructure layer:
+
+| Platform | Service | Monitoring |
+|----------|---------|------------|
+| **AWS** | Bedrock | CloudWatch metrics |
+| **Azure** | OpenAI Service | Azure Monitor, Cost Management portal |
+| **Google Cloud** | Vertex AI | Cloud Monitoring, Billing reports |
+
+These infrastructure metrics provide billing accuracy, quota management, cross-application visibility, budget alerting, and audit trails. Combine application-level tracing (Phoenix) with infrastructure metrics for complete cost visibility—Phoenix shows *why* tokens were used, cloud metrics show *how much* you're being charged.
 
 ### Enterprise vs Greenfield
 - Legacy integration
