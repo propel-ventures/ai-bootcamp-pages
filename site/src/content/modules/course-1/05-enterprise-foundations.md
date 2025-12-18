@@ -298,8 +298,8 @@ The observability stack uses **OpenTelemetry (OTel)** as the instrumentation sta
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FastAPI Application                       │
-│                                                              │
+│                     FastAPI Application                     │
+│                                                             │
 │  ┌────────────────────┐    ┌─────────────────────────────┐  │
 │  │  FastAPI           │    │   Agent Framework           │  │
 │  │  Instrumentor      │    │   Observability             │  │
@@ -312,7 +312,7 @@ The observability stack uses **OpenTelemetry (OTel)** as the instrumentation sta
                                │ OTLP gRPC (port 4317)
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         Phoenix                              │
+│                           Phoenix                           │
 │  - Trace Viewer    - LLM Dashboard    - Token Analytics     │
 │  - Span hierarchy  - Model usage      - Cost estimation     │
 │  - Latency         - Prompt replay    - Usage trends        │
@@ -474,20 +474,20 @@ The security layer operates at two levels:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    FastAPI Application                           │
-│                                                                  │
+│                       FastAPI Application                       │
+│                                                                 │
 │  Request → PIIDetectionMiddleware → AG-UI Endpoint              │
-│                                      ├── scan_input()            │
-│                                      ├── LLM Processing          │
+│                                      ├── scan_input()           │
+│                                      ├── LLM Processing         │
 │                                      └── scan_complete_response()│
-│                                                                  │
+│                                                                 │
 │  All detections logged to OpenTelemetry spans                   │
-└──────────────────────────────────┬──────────────────────────────┘
-                                   │ OTLP gRPC
-                                   ▼
+└─────────────────────────────────┬───────────────────────────────┘
+                                  │ OTLP gRPC
+                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                          Phoenix                                 │
-│  Filter by: pii.detected=true | pii.entity_types | pii.source   │
+│                            Phoenix                              │
+│  Filter by: pii.detected=true | pii.entity_types | pii.source  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -596,17 +596,17 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Agent Framework                              │
+│                        Agent Framework                          │
 │                                                                 │
 │  gen_ai.usage.input_tokens  ──►  llm.token_count.prompt         │
 │  gen_ai.usage.output_tokens ──►  llm.token_count.completion     │
 │  gen_ai.request.model       ──►  llm.model_name                 │
 │  (inferred)                 ──►  llm.provider                   │
 └─────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
+                                  │
+                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Phoenix                                 │
+│                            Phoenix                              │
 │                                                                 │
 │  Model Pricing Configuration:                                   │
 │  ┌─────────────────┬────────────────┬────────────────┐          │
