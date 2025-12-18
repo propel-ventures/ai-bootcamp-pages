@@ -157,38 +157,38 @@ Testing AI systems requires fundamentally different approaches than traditional 
 The evaluation framework uses **DeepEval** for multi-dimensional testing:
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            pytest test runner                                │
-│                         (pytest tests/evals/ -v)                             │
-└──────────────────────────────────┬───────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          Test Suite (tests/evals/)                           │
-│                                                                              │
-│  ┌────────────────────┐  ┌─────────────────────┐  ┌──────────────────────┐  │
-│  │ test_correctness   │  │ test_hallucination  │  │ test_safety          │  │
-│  │                    │  │                     │  │                      │  │
-│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection   │  │
-│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries  │  │
-│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection     │  │
-│  └────────────────────┘  └─────────────────────┘  └──────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            DeepEval Metrics                                  │
-│                                                                              │
-│  ┌───────────────────────┐  ┌───────────────────────┐  ┌──────────────────┐  │
-│  │ AnswerRelevancyMetric │  │  HallucinationMetric  │  │  ToxicityMetric  │  │
-│  │   threshold: 0.7      │  │    threshold: 0.5     │  │  threshold: 0.5  │  │
-│  └───────────────────────┘  └───────────────────────┘  └──────────────────┘  │
-│                                                                              │
-│  ┌───────────────────────┐                                                   │
-│  │  FaithfulnessMetric   │    Judge Model: gpt-5-mini (Azure or OpenAI)      │
-│  │   threshold: 0.7      │                                                   │
-│  └───────────────────────┘                                                   │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           pytest test runner                               │
+│                        (pytest tests/evals/ -v)                            │
+└────────────────────────────────────┬───────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         Test Suite (tests/evals/)                          │
+│                                                                            │
+│  ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐  │
+│  │ test_correctness   │  │ test_hallucination  │  │ test_safety        │  │
+│  │                    │  │                     │  │                    │  │
+│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection │  │
+│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries│  │
+│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection   │  │
+│  └────────────────────┘  └─────────────────────┘  └────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           DeepEval Metrics                                 │
+│                                                                            │
+│  ┌───────────────────────┐  ┌──────────────────────┐  ┌────────────────┐  │
+│  │ AnswerRelevancyMetric │  │ HallucinationMetric  │  │ ToxicityMetric │  │
+│  │   threshold: 0.7      │  │   threshold: 0.5     │  │ threshold: 0.5 │  │
+│  └───────────────────────┘  └──────────────────────┘  └────────────────┘  │
+│                                                                            │
+│  ┌───────────────────────┐                                                 │
+│  │  FaithfulnessMetric   │   Judge Model: gpt-5-mini (Azure or OpenAI)     │
+│  │   threshold: 0.7      │                                                 │
+│  └───────────────────────┘                                                 │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Test Categories
