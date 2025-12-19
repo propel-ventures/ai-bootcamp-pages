@@ -723,7 +723,227 @@ Beyond application-level tracking, cloud platforms provide their own token usage
 
 These infrastructure metrics provide billing accuracy, quota management, cross-application visibility, budget alerting, and audit trails. Combine application-level tracing (Phoenix) with infrastructure metrics for complete cost visibility—Phoenix shows *why* tokens were used, cloud metrics show *how much* you're being charged.
 
-### Enterprise vs Greenfield
-- Legacy integration
-- Compliance gates
-- Iteration cycles
+## Enterprise vs Greenfield Development
+
+Deploying AI systems differs dramatically between greenfield projects (starting fresh) and enterprise environments (integrating with existing systems). Understanding these differences is critical for realistic planning and successful delivery.
+
+### Defining the Spectrum
+
+| Characteristic | Greenfield | Enterprise (Brownfield) |
+|----------------|------------|-------------------------|
+| **Codebase** | New, purpose-built | Legacy systems, technical debt |
+| **Data** | Clean, designed for AI | Siloed, inconsistent formats |
+| **Infrastructure** | Cloud-native, flexible | On-premise, hybrid, constrained |
+| **Governance** | Define as you build | Existing policies, compliance |
+| **Stakeholders** | Small, agile team | Multiple departments, approval chains |
+| **Timeline** | Rapid iteration | Phased rollouts, change windows |
+
+### Legacy Integration Challenges
+
+Enterprise AI projects spend significant effort on integration rather than model development:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     Enterprise Integration Landscape                    │
+│                                                                         │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐               │
+│  │   Legacy     │    │   Modern     │    │    AI        │               │
+│  │   Systems    │◄──►│   APIs       │◄──►│   Service    │               │
+│  │              │    │   (Gateway)  │    │              │               │
+│  │  - COBOL     │    │  - REST      │    │  - LLM calls │               │
+│  │  - SOAP      │    │  - GraphQL   │    │  - Embeddings│               │
+│  │  - Mainframe │    │  - gRPC      │    │  - Vector DB │               │
+│  └──────────────┘    └──────────────┘    └──────────────┘               │
+│         │                   │                   │                       │
+│         ▼                   ▼                   ▼                       │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    Data Transformation Layer                    │    │
+│  │  - Schema mapping    - Format conversion    - Data validation   │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Common Integration Patterns:**
+
+| Pattern | Use Case | Complexity |
+|---------|----------|------------|
+| **API Gateway** | Expose legacy via REST | Medium |
+| **Event-Driven** | Async updates to/from AI | High |
+| **Batch ETL** | Nightly data sync for RAG | Low-Medium |
+| **Change Data Capture** | Real-time data streaming | High |
+| **Strangler Fig** | Gradual legacy replacement | Very High |
+
+### Compliance Gates
+
+Enterprise environments require formal approval processes that don't exist in greenfield projects:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     Enterprise AI Approval Pipeline                     │
+│                                                                         │
+│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐  │
+│  │   Legal     │   │   Security  │   │    Risk     │   │   Privacy   │  │
+│  │   Review    │──►│   Review    │──►│   Review    │──►│   Review    │  │
+│  │             │   │             │   │             │   │             │  │
+│  │ - IP/License│   │ - Pen test  │   │ - Model risk│   │ - PII flow  │  │
+│  │ - Terms     │   │ - OWASP AI  │   │ - Bias audit│   │ - GDPR/CCPA │  │
+│  │ - Contracts │   │ - Data flow │   │ - Explainability│ - Consent   │  │
+│  └─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘  │
+│                                                              │          │
+│                                                              ▼          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    Production Deployment                        │    │
+│  │     (only after all gates pass + architecture review board)     │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Compliance Considerations for AI:**
+
+| Domain | Greenfield Approach | Enterprise Requirements |
+|--------|---------------------|------------------------|
+| **Data Governance** | Define schemas as needed | Formal data classification, lineage tracking |
+| **Model Governance** | Deploy when ready | Model registry, approval workflows, version control |
+| **Audit Trail** | Basic logging | Immutable logs, decision traceability, retention policies |
+| **Bias & Fairness** | Test informally | Formal bias audits, disparate impact analysis |
+| **Explainability** | Optional | Mandatory for regulated decisions (credit, insurance) |
+
+### Iteration Cycles
+
+The velocity difference between greenfield and enterprise is often 5-10x:
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│                       Deployment Velocity Comparison                      │
+│                                                                           │
+│  Greenfield:                                                              │
+│  ┌───────┐   ┌──────┐   ┌───────┐   ┌────────┐   ┌────────┐               │
+│  │ Build │──►│ Test │──►│ Deploy│──►│ Monitor│──►│Iterate │ (Hours/Days)  │
+│  └───────┘   └──────┘   └───────┘   └────────┘   └────────┘               │
+│                                                                           │
+│  Enterprise:                                                              │
+│  ┌───────┐ ┌───────┐ ┌───────┐ ┌─────────┐ ┌────────┐ ┌───────┐ ┌───────┐ │
+│  │ Build │►│Review │►│ Stage │►│Approvals│►│ Change │►│Deploy │►│ Hyper │ │
+│  │       │ │ Board │ │ Test  │ │ (multi) │ │ Window │ │       │ │ care  │ │
+│  └───────┘ └───────┘ └───────┘ └─────────┘ └────────┘ └───────┘ └───────┘ │
+│                                                          (Weeks/Months)   │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+**Strategies for Faster Enterprise Iteration:**
+
+1. **Shadow Mode Deployment**: Run AI alongside existing systems without affecting production
+2. **Feature Flags**: Gradual rollout to user segments
+3. **A/B Testing Infrastructure**: Compare AI vs non-AI paths safely
+4. **Canary Releases**: Deploy to 1% of traffic, monitor, then expand
+5. **Blue-Green Deployments**: Instant rollback capability
+
+### AI-Specific Enterprise Challenges
+
+#### Data Readiness
+
+Enterprise data is rarely AI-ready:
+
+| Challenge | Impact on AI | Mitigation |
+|-----------|-------------|------------|
+| **Siloed data** | Incomplete context for RAG | Data mesh, federated access |
+| **Inconsistent formats** | Embedding quality issues | Schema normalisation layer |
+| **Missing metadata** | Poor retrieval relevance | Metadata enrichment pipeline |
+| **Stale data** | Outdated responses | Real-time sync, freshness checks |
+| **PII everywhere** | Compliance risk | Presidio scanning, anonymisation |
+
+#### Model Governance
+
+Enterprises require formal model lifecycle management:
+
+```python
+# Enterprise model registry pattern
+class ModelRegistry:
+    """Central registry for all deployed AI models."""
+
+    def register_model(
+        self,
+        model_id: str,
+        version: str,
+        metadata: ModelMetadata,
+    ) -> RegistrationResult:
+        """Register a model with required enterprise metadata."""
+        required_fields = [
+            "owner",
+            "purpose",
+            "training_data_lineage",
+            "bias_audit_date",
+            "approved_by",
+            "expiry_date",  # Models must be re-validated periodically
+        ]
+        # Validate all governance requirements before registration
+        ...
+```
+
+#### Infrastructure Constraints
+
+| Constraint | Greenfield Solution | Enterprise Reality |
+|------------|--------------------|--------------------|
+| **GPU availability** | Cloud on-demand | Procurement process, shared clusters |
+| **Network egress** | Call any API | Approved vendor list, proxies |
+| **Data residency** | Store anywhere | Specific regions, on-premise only |
+| **Latency requirements** | Optimise later | SLAs from day one |
+
+### Decision Framework: Build vs Integrate
+
+When approaching AI in enterprise environments, use this evaluation framework:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Enterprise AI Decision Matrix                         │
+│                                                                         │
+│                        Existing System Flexibility                       │
+│                        Low ◄─────────────────► High                      │
+│                         │                       │                        │
+│  Business    High   ┌───┴───────────────────────┴───┐                   │
+│  Criticality        │  INTEGRATE    │    AUGMENT    │                   │
+│              │      │  (API Layer)  │ (AI Co-pilot) │                   │
+│              │      ├───────────────┼───────────────┤                   │
+│              │      │   REPLACE     │   GREENFIELD  │                   │
+│              Low    │  (Strangler)  │   (New Build) │                   │
+│                     └───────────────┴───────────────┘                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Decision Criteria:**
+
+| Factor | Favours Integration | Favours Greenfield |
+|--------|--------------------|--------------------|
+| Time to value | Weeks | Months acceptable |
+| Risk tolerance | Low | Higher |
+| Technical debt | Manageable | Overwhelming |
+| Data quality | Good enough | Needs redesign |
+| Team skills | Mixed legacy/modern | Modern stack only |
+
+### Practical Recommendations
+
+#### For Enterprise Projects:
+
+1. **Start with observability** - You can't improve what you can't measure
+2. **Build the compliance pipeline first** - Approvals take longer than development
+3. **Invest in data quality** - Garbage in, garbage out applies doubly to AI
+4. **Plan for shadow mode** - Run AI in parallel before replacing anything
+5. **Document everything** - Audit trails are mandatory, not optional
+
+#### For Greenfield Projects:
+
+1. **Design for enterprise from day one** - You'll need governance eventually
+2. **Use enterprise-grade tools** - Don't build on consumer-tier APIs
+3. **Implement observability early** - Not as an afterthought
+4. **Build modular integrations** - You'll need to connect to legacy systems
+5. **Plan for compliance** - SOC 2, GDPR, HIPAA requirements will come
+
+### Key Takeaways
+
+| Principle | Application |
+|-----------|-------------|
+| **Context matters** | The same AI solution requires 3x effort in enterprise vs greenfield |
+| **Compliance is a feature** | Build it in, don't bolt it on |
+| **Data is the bottleneck** | Model development is fast; data readiness is slow |
+| **Governance enables speed** | Upfront investment in process reduces friction later |
+| **Observability is non-negotiable** | You need tracing, evaluation, and cost tracking from day one |
