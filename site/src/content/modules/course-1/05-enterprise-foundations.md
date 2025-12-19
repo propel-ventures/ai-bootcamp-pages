@@ -782,12 +782,12 @@ Enterprise environments require formal approval processes that don't exist in gr
 │                     Enterprise AI Approval Pipeline                     │
 │                                                                         │
 │  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐  │
-│  │   Legal     │   │   Security  │   │    Risk     │   │   Privacy   │  │
+│  │    Legal    │   │  Security   │   │    Risk     │   │   Privacy   │  │
 │  │   Review    │──►│   Review    │──►│   Review    │──►│   Review    │  │
 │  │             │   │             │   │             │   │             │  │
-│  │ - IP/License│   │ - Pen test  │   │ - Model risk│   │ - PII flow  │  │
-│  │ - Terms     │   │ - OWASP AI  │   │ - Bias audit│   │ - GDPR/CCPA │  │
-│  │ - Contracts │   │ - Data flow │   │ - Explainability│ - Consent   │  │
+│  │- IP/License │   │- Pen test   │   │- Model risk │   │- PII flow   │  │
+│  │- Terms      │   │- OWASP AI   │   │- Bias audit │   │- GDPR/CCPA  │  │
+│  │- Contracts  │   │- Data flow  │   │- Explain.   │   │- Consent    │  │
 │  └─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘  │
 │                                                              │          │
 │                                                              ▼          │
