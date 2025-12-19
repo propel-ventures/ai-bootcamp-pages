@@ -895,11 +895,11 @@ When approaching AI in enterprise environments, use this evaluation framework:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    Enterprise AI Decision Matrix                         │
+│                    Enterprise AI Decision Matrix                        │
 │                                                                         │
-│                        Existing System Flexibility                       │
-│                        Low ◄─────────────────► High                      │
-│                         │                       │                        │
+│                        Existing System Flexibility                      │
+│                        Low ◄─────────────────► High                     │
+│                         │                       │                       │
 │  Business    High   ┌───┴───────────────────────┴───┐                   │
 │  Criticality        │  INTEGRATE    │    AUGMENT    │                   │
 │              │      │  (API Layer)  │ (AI Co-pilot) │                   │
