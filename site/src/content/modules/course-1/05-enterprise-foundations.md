@@ -157,38 +157,38 @@ Testing AI systems requires fundamentally different approaches than traditional 
 The evaluation framework uses **DeepEval** for multi-dimensional testing:
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            pytest test runner                                │
-│                         (pytest tests/evals/ -v)                             │
-└──────────────────────────────────┬───────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          Test Suite (tests/evals/)                           │
-│                                                                              │
-│  ┌────────────────────┐  ┌─────────────────────┐  ┌──────────────────────┐  │
-│  │ test_correctness   │  │ test_hallucination  │  │ test_safety          │  │
-│  │                    │  │                     │  │                      │  │
-│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection   │  │
-│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries  │  │
-│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection     │  │
-│  └────────────────────┘  └─────────────────────┘  └──────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            DeepEval Metrics                                  │
-│                                                                              │
-│  ┌───────────────────────┐  ┌───────────────────────┐  ┌──────────────────┐  │
-│  │ AnswerRelevancyMetric │  │  HallucinationMetric  │  │  ToxicityMetric  │  │
-│  │   threshold: 0.7      │  │    threshold: 0.5     │  │  threshold: 0.5  │  │
-│  └───────────────────────┘  └───────────────────────┘  └──────────────────┘  │
-│                                                                              │
-│  ┌───────────────────────┐                                                   │
-│  │  FaithfulnessMetric   │    Judge Model: gpt-5-mini (Azure or OpenAI)      │
-│  │   threshold: 0.7      │                                                   │
-│  └───────────────────────┘                                                   │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           pytest test runner                               │
+│                        (pytest tests/evals/ -v)                            │
+└────────────────────────────────────┬───────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         Test Suite (tests/evals/)                          │
+│                                                                            │
+│  ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐   │
+│  │ test_correctness   │  │ test_hallucination  │  │ test_safety        │   │
+│  │                    │  │                     │  │                    │   │
+│  │ - Response quality │  │ - No fake stats     │  │ - Prompt injection │   │
+│  │ - Educational tone │  │ - Uncertainty       │  │ - Domain boundaries│   │
+│  │ - Relevance        │  │ - Faithfulness      │  │ - PII protection   │   │
+│  └────────────────────┘  └─────────────────────┘  └────────────────────┘   │
+└────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           DeepEval Metrics                                 │
+│                                                                            │
+│  ┌───────────────────────┐  ┌──────────────────────┐  ┌────────────────┐   │
+│  │ AnswerRelevancyMetric │  │ HallucinationMetric  │  │ ToxicityMetric │   │
+│  │   threshold: 0.7      │  │   threshold: 0.5     │  │ threshold: 0.5 │   │
+│  └───────────────────────┘  └──────────────────────┘  └────────────────┘   │
+│                                                                            │
+│  ┌───────────────────────┐                                                 │
+│  │  FaithfulnessMetric   │   Judge Model: gpt-5-mini (Azure or OpenAI)     │
+│  │   threshold: 0.7      │                                                 │
+│  └───────────────────────┘                                                 │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Test Categories
@@ -298,8 +298,8 @@ The observability stack uses **OpenTelemetry (OTel)** as the instrumentation sta
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FastAPI Application                       │
-│                                                              │
+│                     FastAPI Application                     │
+│                                                             │
 │  ┌────────────────────┐    ┌─────────────────────────────┐  │
 │  │  FastAPI           │    │   Agent Framework           │  │
 │  │  Instrumentor      │    │   Observability             │  │
@@ -312,7 +312,7 @@ The observability stack uses **OpenTelemetry (OTel)** as the instrumentation sta
                                │ OTLP gRPC (port 4317)
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         Phoenix                              │
+│                           Phoenix                           │
 │  - Trace Viewer    - LLM Dashboard    - Token Analytics     │
 │  - Span hierarchy  - Model usage      - Cost estimation     │
 │  - Latency         - Prompt replay    - Usage trends        │
@@ -473,22 +473,22 @@ The security layer operates at two levels:
 2. **Streaming Scanner** - Scans both user inputs and LLM outputs during AG-UI streaming, logging detections to OpenTelemetry spans
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FastAPI Application                           │
-│                                                                  │
-│  Request → PIIDetectionMiddleware → AG-UI Endpoint              │
-│                                      ├── scan_input()            │
-│                                      ├── LLM Processing          │
-│                                      └── scan_complete_response()│
-│                                                                  │
-│  All detections logged to OpenTelemetry spans                   │
-└──────────────────────────────────┬──────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                        FastAPI Application                        │
+│                                                                   │
+│  Request → PIIDetectionMiddleware → AG-UI Endpoint                │
+│                                      ├── scan_input()             │
+│                                      ├── LLM Processing           │
+│                                      └── scan_complete_response() │
+│                                                                   │
+│  All detections logged to OpenTelemetry spans                     │
+└──────────────────────────────────┬────────────────────────────────┘
                                    │ OTLP gRPC
                                    ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                          Phoenix                                 │
-│  Filter by: pii.detected=true | pii.entity_types | pii.source   │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                             Phoenix                               │
+│  Filter by: pii.detected=true | pii.entity_types | pii.source     │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ### How It Works
@@ -596,17 +596,17 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Agent Framework                              │
+│                        Agent Framework                          │
 │                                                                 │
 │  gen_ai.usage.input_tokens  ──►  llm.token_count.prompt         │
 │  gen_ai.usage.output_tokens ──►  llm.token_count.completion     │
 │  gen_ai.request.model       ──►  llm.model_name                 │
 │  (inferred)                 ──►  llm.provider                   │
 └─────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
+                                  │
+                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Phoenix                                 │
+│                            Phoenix                              │
 │                                                                 │
 │  Model Pricing Configuration:                                   │
 │  ┌─────────────────┬────────────────┬────────────────┐          │
