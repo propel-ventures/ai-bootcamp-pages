@@ -89,6 +89,14 @@ Essential for all developers, this module aligns with development excellence pri
 - We usually donot create the conent of the custom/sub agents manually, rathe we copy from the community such as:
   - Superpowers-skills: https://github.com/obra/superpowers-skills
   - Awesome Copilot: https://github.com/github/awesome-copilot/tree/main
+
+**⚠️ Heads Up:** If you're installing the Superpowers skills repo, you need to have Superpowers installed first.
+In Claude Code:
+```bash
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+```
+
 - After you choose an Implementation-plan agent, select that agent and ask to to create a plan to implement PII redaction middleware that redacts email addresses, phone numbers, and tax file numbers (TFNs) from all API responses.
 - Depending on the model and AI coding assistant, the agent might overengineer the solution, so make sure to review the plan (no vibe planning)
 - Example of what to prompt: 
