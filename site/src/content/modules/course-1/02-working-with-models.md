@@ -48,6 +48,19 @@ quiz:
     answer: 1
 ---
 
+## Prerequisites
+
+Before starting this module, you'll need to clone the bootcamp application repository:
+
+```bash
+git clone https://github.com/propel-ventures/ai-bootcamp
+cd ai-bootcamp/ai-bootcamp-app
+```
+
+Follow the setup instructions in the repository README to get the application running locally.
+
+**Note:** The sample application code is written and geared towards Microsoft Foundry. The hands-on exercises will guide you through adapting it to work with AWS Bedrock and local model providers.
+
 ## Overview
 
 Learn to work with models across different deployment contexts and make informed decisions about which approach fits your use case. This module covers API-based services, self-hosted options, and the architectural patterns for building provider-agnostic AI applications.
@@ -198,7 +211,55 @@ Fine-tuning should be a last resort. Consider these alternatives first:
 
 ## Hands-On Exercise
 
-1. Clone the bootcamp app and configure it with your preferred provider
-2. Switch between providers using environment variables
-3. Compare response quality and latency between different cloud providers
-4. Add a new provider implementation following the Protocol pattern
+### Part 1: Deploy a Cloud Model Provider
+
+Integrate AWS Bedrock with the bootcamp app:
+
+#### AWS Bedrock
+1. Log into AWS Console and navigate to Amazon Bedrock
+2. Request access to a foundation model (e.g., Claude 3 Sonnet or Claude 3.5 Sonnet)
+3. Wait for model access approval (usually takes a few minutes)
+4. Configure your AWS credentials locally (using AWS CLI or environment variables)
+5. Update the bootcamp app's `.env` file with Bedrock configuration:
+   ```bash
+   AI__PROVIDER=bedrock
+   AI__MODEL=anthropic.claude-3-5-sonnet-20241022-v2:0
+   AI__AWS_REGION=us-east-1
+   ```
+6. Test the integration by running the app and making a request
+
+### Part 2: Set Up Local Model Provider
+
+Experiment with running models locally using one of these tools:
+
+#### Option A: Ollama
+1. Install Ollama from [ollama.ai](https://ollama.ai)
+2. Pull a model: `ollama pull llama3.2` or `ollama pull phi3`
+3. Implement an Ollama provider in the bootcamp app by:
+   - Creating a new provider class in `backend/app/ai/providers/ollama.py`
+   - Following the `AIProvider` Protocol pattern
+   - Using Ollama's HTTP API (default: `http://localhost:11434`)
+4. Update the factory to support the new provider
+5. Test your implementation
+
+#### Option B: LM Studio
+1. Download and install [LM Studio](https://lmstudio.ai)
+2. Download a model through the LM Studio UI (e.g., Phi-3 or Llama 3.2)
+3. Start the local server (provides OpenAI-compatible API)
+4. Implement an LM Studio provider or adapt the OpenAI provider to point to localhost
+5. Test your implementation
+
+### Part 3: Open a Pull Request
+
+After successfully integrating a new provider:
+
+1. Create a new branch in your forked bootcamp repository
+2. Commit your changes with clear commit messages
+3. Push your branch and open a Pull Request to the main repository
+4. In your PR description, include:
+   - Which provider you implemented
+   - Configuration instructions
+   - Screenshots or logs showing it working
+   - Any challenges you encountered
+
+**Bonus Challenge:** Implement support for **both** a cloud provider and a local provider, then create a comparison script that measures response time and quality differences.
