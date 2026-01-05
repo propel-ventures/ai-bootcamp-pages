@@ -259,7 +259,9 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
 
 3. Select the **claude-haiku-4-5** model from the list of deployed models
 
-4. Copy the endpoint URL and API key from the model deployment details
+4. Copy the endpoint URL and API key from the model deployment page:
+    - **API Key**: In the **Endpoint** section on the left, find the **Key** field and click the copy button
+    - **Endpoint URL**: In the **Language** dropdown on the right, select **Python**, then find the `base_url` value in the code example under "Authentication using API Key" (e.g., `https://your-resource.services.ai.azure.com/anthropic/`)
 
 5. Create a `.env` file in the bootcamp app's `backend/` directory with the following configuration:
 
@@ -274,33 +276,102 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
     # CORS (comma-separated origins)
     CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
 
-    # AI Provider Configuration - Azure AI Foundry with Claude
-    AI__PROVIDER=azure_anthropic
-    AI__MODEL=claude-haiku-4-5
-    AI__AZURE_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic/
-    AI__AZURE_API_KEY=your-api-key
+    # AI Provider Configuration
+    # Options: ollama, azure_anthropic, azure_openai, bedrock
+    AI__PROVIDER=ollama
+    AI__MODEL=llama3.2
+
+    # Ollama (default - local)
+    AI__OLLAMA_BASE_URL=http://localhost:11434
+
+    # Azure AI Foundry (uncomment to use)
+    # AI__PROVIDER=azure_anthropic
+    # AI__MODEL=claude-haiku-4-5
+    # AI__AZURE_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic/
+    # AI__AZURE_API_KEY=your-api-key
+
+    # Azure OpenAI (uncomment to use)
+    # AI__PROVIDER=azure_openai
+    # AI__MODEL=gpt-5-mini
+    # AI__AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+    # AI__AZURE_OPENAI_API_KEY=your-api-key
+    # AI__AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+    # AI__AZURE_OPENAI_API_VERSION=2025-04-01-preview
+
+    # AWS Bedrock (uncomment to use)
+    # AI__PROVIDER=bedrock
+    # AI__MODEL=anthropic.claude-3-haiku-20240307-v1:0
+    # AI__AWS_REGION=us-east-1
+    # AI__AWS_ACCESS_KEY_ID=your-access-key
+    # AI__AWS_SECRET_ACCESS_KEY=your-secret-key
 
     # Agent Framework Configuration
+    # Provider: "anthropic" (direct API), "foundry" (Azure AI Foundry), or "azure_openai"
     AGENT__PROVIDER=foundry
     AGENT__AGENT_MODEL=claude-haiku-4-5
     AGENT__MAX_TOKENS=8192
+
+    # Direct Anthropic API (full feature support including custom function tools)
+    # AGENT__PROVIDER=anthropic
+    # AGENT__API_KEY=your-anthropic-api-key
+
+    # Azure AI Foundry (works with hosted tools like HostedWebSearchTool)
     AGENT__FOUNDRY_API_KEY=your-foundry-api-key
     AGENT__FOUNDRY_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic
 
-    # Observability (optional - requires Phoenix running)
+    # Azure OpenAI for Agents (uncomment to use)
+    # AGENT__PROVIDER=azure_openai
+    # AGENT__AGENT_MODEL=gpt-5-mini
+    # AGENT__AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+    # AGENT__AZURE_OPENAI_API_KEY=your-api-key
+    # AGENT__AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+    # AGENT__AZURE_OPENAI_API_VERSION=2025-04-01-preview
+
+    # Redis Settings (for memory)
+    REDIS__HOST=localhost
+    REDIS__PORT=6379
+    REDIS__PASSWORD=
+    REDIS__DB=0
+
+    # Memory Settings
+    MEMORY__THREAD_TTL_HOURS=24
+    MEMORY__USER_TTL_DAYS=30
+    MEMORY__MAX_THREAD_MESSAGES=50
+
+    # Observability Configuration
+    # Set OTEL_ENABLE_OTEL=true to enable tracing
     OTEL_ENABLE_OTEL=false
     OTEL_OTLP_ENDPOINT=http://localhost:4317
     OTEL_ENABLE_SENSITIVE_DATA=false
     OTEL_SERVICE_NAME=ai-bootcamp-backend
+    OTEL_ENABLE_COST_TRACKING=true
 
-    # Evaluation Configuration (for later modules)
-    EVAL__PROVIDER=azure_openai
-    EVAL__MODEL=gpt-5-mini
-    EVAL__AZURE_ENDPOINT=https://az-open-ai-rg-baz-dev.cognitiveservices.azure.com
-    EVAL__AZURE_API_KEY=your-eval-api-key
-    EVAL__AZURE_DEPLOYMENT=gpt-5-mini
-    EVAL__AZURE_API_VERSION=2025-04-01-preview
-    EVAL__TEMPERATURE=1.0
+    # Evaluation Configuration (DeepEval judge model)
+    # By default, evals reuse AGENT__AZURE_OPENAI_* settings above.
+    # Set EVAL__PROVIDER to use a dedicated judge model configuration.
+
+    # Provider: "azure_openai" or "openai"
+    # EVAL__PROVIDER=azure_openai
+
+    # Judge model name (default: gpt-5-mini)
+    # EVAL__MODEL=gpt-5-mini
+
+    # Azure OpenAI for eval judge (if EVAL__PROVIDER=azure_openai)
+    # EVAL__AZURE_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+    # EVAL__AZURE_API_KEY=your-api-key
+    # EVAL__AZURE_DEPLOYMENT=gpt-5-mini
+    # EVAL__AZURE_API_VERSION=2025-04-01-preview
+
+    # OpenAI for eval judge (if EVAL__PROVIDER=openai)
+    # EVAL__OPENAI_API_KEY=your-openai-api-key
+
+    # Model parameters (optional)
+    # EVAL__TEMPERATURE=1.0  # Some models only support default temperature
+
+    # PII Detection
+    PII_ENABLED=true
+    PII_LOG_ONLY=true
+    PII_CONFIDENCE_THRESHOLD=0.7
     ```
 
 6. Replace the placeholder values (`your-endpoint`, `your-api-key`, etc.) with the actual values from Azure AI Foundry
