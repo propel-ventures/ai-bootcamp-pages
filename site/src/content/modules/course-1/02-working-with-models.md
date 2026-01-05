@@ -79,7 +79,7 @@ The `/prime-context` command reads the project's `CLAUDE.md` file and any additi
 1. Open Claude Code in the bootcamp repository directory:
 
     ```bash
-    cd ai-bootcamp/ai-bootcamp-app
+    cd ai-bootcamp/
     claude
     ```
 
@@ -249,7 +249,65 @@ Fine-tuning should be a last resort. Consider these alternatives first:
 
 ## Hands-On Exercise
 
-### Part 1: Deploy a Cloud Model Provider
+### Part 1: Configure Azure AI Foundry with Claude
+
+Set up the bootcamp app to use Claude models via Azure AI Foundry:
+
+1. Navigate to the [Azure AI Foundry Project](https://ai.azure.com/foundryProject/overview?wsid=/subscriptions/c648d4fd-1497-4f7d-94e0-915a3cf1b5ca/resourceGroups/rg-baz-dev/providers/Microsoft.CognitiveServices/accounts/az-open-ai-rg-baz-dev/projects/az-open-ai-rg-baz-dev-project&tid=a5053235-83cf-48d5-a03f-da1154fe4b2b) in the Propel Azure account
+
+2. In the left navigation bar, click **Models + endpoints** to browse deployed models
+
+3. Select the **claude-haiku-4-5** model from the list of deployed models
+
+4. Copy the endpoint URL and API key from the model deployment details
+
+5. Create a `.env` file in the bootcamp app's `backend/` directory with the following configuration:
+
+    ```bash
+    # Application
+    APP_NAME=AI Bootcamp App
+    DEBUG=false
+
+    # Database
+    DATABASE_URL=sqlite:///./app.db
+
+    # CORS (comma-separated origins)
+    CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+
+    # AI Provider Configuration - Azure AI Foundry with Claude
+    AI__PROVIDER=azure_anthropic
+    AI__MODEL=claude-haiku-4-5
+    AI__AZURE_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic/
+    AI__AZURE_API_KEY=your-api-key
+
+    # Agent Framework Configuration
+    AGENT__PROVIDER=foundry
+    AGENT__AGENT_MODEL=claude-haiku-4-5
+    AGENT__MAX_TOKENS=8192
+    AGENT__FOUNDRY_API_KEY=your-foundry-api-key
+    AGENT__FOUNDRY_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic
+
+    # Observability (optional - requires Phoenix running)
+    OTEL_ENABLE_OTEL=false
+    OTEL_OTLP_ENDPOINT=http://localhost:4317
+    OTEL_ENABLE_SENSITIVE_DATA=false
+    OTEL_SERVICE_NAME=ai-bootcamp-backend
+
+    # Evaluation Configuration (for later modules)
+    EVAL__PROVIDER=azure_openai
+    EVAL__MODEL=gpt-5-mini
+    EVAL__AZURE_ENDPOINT=https://az-open-ai-rg-baz-dev.cognitiveservices.azure.com
+    EVAL__AZURE_API_KEY=your-eval-api-key
+    EVAL__AZURE_DEPLOYMENT=gpt-5-mini
+    EVAL__AZURE_API_VERSION=2025-04-01-preview
+    EVAL__TEMPERATURE=1.0
+    ```
+
+6. Replace the placeholder values (`your-endpoint`, `your-api-key`, etc.) with the actual values from Azure AI Foundry
+
+7. Test the configuration by starting the backend and making a request
+
+### Part 2: Deploy a Cloud Model Provider (AWS Bedrock)
 
 Integrate AWS Bedrock with the bootcamp app:
 
@@ -269,7 +327,7 @@ Integrate AWS Bedrock with the bootcamp app:
 
 6. Test the integration by running the app and making a request
 
-### Part 2: Set Up Local Model Provider
+### Part 3: Set Up Local Model Provider
 
 Experiment with running models locally using one of these tools:
 
@@ -294,7 +352,7 @@ Experiment with running models locally using one of these tools:
 4. Implement an LM Studio provider or adapt the OpenAI provider to point to localhost
 5. Test your implementation
 
-### Part 3: Open a Pull Request
+### Part 4: Open a Pull Request
 
 After successfully integrating a new provider:
 
