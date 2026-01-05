@@ -376,7 +376,14 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
 
 6. Replace the placeholder values (`your-endpoint`, `your-api-key`, etc.) with the actual values from Azure AI Foundry
 
-7. Test the configuration by starting the backend and making a request
+7. Start the application using Docker Compose:
+
+    ```bash
+    cd ai-bootcamp/ai-bootcamp-app
+    docker-compose up
+    ```
+
+8. Test the configuration by making a request to the backend API, via the React UI at http://localhost:3000/
 
 ### Part 2: Deploy a Cloud Model Provider (AWS Bedrock)
 
