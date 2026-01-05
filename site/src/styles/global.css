@@ -48,6 +48,10 @@
     @apply list-disc pl-6 my-4 space-y-2;
   }
 
+  .prose ol {
+    @apply list-decimal pl-6 my-4 space-y-2;
+  }
+
   .prose li {
     @apply leading-relaxed;
   }
