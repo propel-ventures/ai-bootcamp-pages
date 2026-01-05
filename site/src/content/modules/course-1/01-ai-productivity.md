@@ -87,7 +87,7 @@ Essential for all developers, this module aligns with development excellence pri
 - Say when you wanted to deploy this API, security requests to show that no PII is returned on any endpoints
 - Create a custom/sub agent (e.g., name it `implementation-plan`) to help generate a plan for any requirments in this repository
 - We usually donot create the conent of the custom/sub agents manually, rathe we copy from the community such as:
-  - Superpowers-skills: https://github.com/obra/superpowers-skills
+  - Superpowers: https://github.com/obra/superpowers
   - Awesome Copilot: https://github.com/github/awesome-copilot/tree/main
 
 **⚠️ Heads Up:** If you're installing the Superpowers skills repo, you need to have Superpowers installed first.
