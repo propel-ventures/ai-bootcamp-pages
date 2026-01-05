@@ -61,6 +61,44 @@ Follow the setup instructions in the repository README to get the application ru
 
 **Note:** The sample application code is written and geared towards Microsoft Foundry. The hands-on exercises will guide you through adapting it to work with AWS Bedrock and local model providers.
 
+## Using Claude Code
+
+If you're using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI tool for Claude) to work through this module, you can use the `/prime-context` command to quickly get Claude up to speed with the bootcamp codebase.
+
+### What is prime-context?
+
+The `/prime-context` command reads the project's `CLAUDE.md` file and any additional documentation, giving Claude immediate understanding of:
+
+- Project structure and architecture
+- Available commands and how to run them
+- Key files and their purposes
+- Coding conventions and patterns used
+
+### How to Use It
+
+1. Open Claude Code in the bootcamp repository directory:
+
+    ```bash
+    cd ai-bootcamp/ai-bootcamp-app
+    claude
+    ```
+
+2. Run the prime-context command:
+
+    ```
+    /prime-context
+    ```
+
+3. Claude will read the project documentation and be ready to assist with implementation tasks, debugging, and understanding the codebase.
+
+### When to Use It
+
+- **Starting a new session** - Prime context at the beginning of each Claude Code session
+- **After cloning the repo** - Get oriented with the codebase quickly
+- **Before implementing exercises** - Ensure Claude understands the existing patterns before you start coding
+
+This is especially helpful for the hands-on exercises in this module, where you'll be implementing new providers that need to follow existing architectural patterns.
+
 ## Overview
 
 Learn to work with models across different deployment contexts and make informed decisions about which approach fits your use case. This module covers API-based services, self-hosted options, and the architectural patterns for building provider-agnostic AI applications.
@@ -216,16 +254,19 @@ Fine-tuning should be a last resort. Consider these alternatives first:
 Integrate AWS Bedrock with the bootcamp app:
 
 #### AWS Bedrock
+
 1. Log into AWS Console and navigate to Amazon Bedrock
 2. Request access to a foundation model (e.g., Claude 3 Sonnet or Claude 3.5 Sonnet)
 3. Wait for model access approval (usually takes a few minutes)
 4. Configure your AWS credentials locally (using AWS CLI or environment variables)
 5. Update the bootcamp app's `.env` file with Bedrock configuration:
-   ```bash
-   AI__PROVIDER=bedrock
-   AI__MODEL=anthropic.claude-3-5-sonnet-20241022-v2:0
-   AI__AWS_REGION=us-east-1
-   ```
+
+    ```bash
+    AI__PROVIDER=bedrock
+    AI__MODEL=anthropic.claude-3-5-sonnet-20241022-v2:0
+    AI__AWS_REGION=us-east-1
+    ```
+
 6. Test the integration by running the app and making a request
 
 ### Part 2: Set Up Local Model Provider
@@ -233,16 +274,20 @@ Integrate AWS Bedrock with the bootcamp app:
 Experiment with running models locally using one of these tools:
 
 #### Option A: Ollama
+
 1. Install Ollama from [ollama.ai](https://ollama.ai)
 2. Pull a model: `ollama pull llama3.2` or `ollama pull phi3`
 3. Implement an Ollama provider in the bootcamp app by:
-   - Creating a new provider class in `backend/app/ai/providers/ollama.py`
-   - Following the `AIProvider` Protocol pattern
-   - Using Ollama's HTTP API (default: `http://localhost:11434`)
+
+    - Creating a new provider class in `backend/app/ai/providers/ollama.py`
+    - Following the `AIProvider` Protocol pattern
+    - Using Ollama's HTTP API (default: `http://localhost:11434`)
+
 4. Update the factory to support the new provider
 5. Test your implementation
 
 #### Option B: LM Studio
+
 1. Download and install [LM Studio](https://lmstudio.ai)
 2. Download a model through the LM Studio UI (e.g., Phi-3 or Llama 3.2)
 3. Start the local server (provides OpenAI-compatible API)
@@ -257,9 +302,10 @@ After successfully integrating a new provider:
 2. Commit your changes with clear commit messages
 3. Push your branch and open a Pull Request to the main repository
 4. In your PR description, include:
-   - Which provider you implemented
-   - Configuration instructions
-   - Screenshots or logs showing it working
-   - Any challenges you encountered
+
+    - Which provider you implemented
+    - Configuration instructions
+    - Screenshots or logs showing it working
+    - Any challenges you encountered
 
 **Bonus Challenge:** Implement support for **both** a cloud provider and a local provider, then create a comparison script that measures response time and quality differences.
