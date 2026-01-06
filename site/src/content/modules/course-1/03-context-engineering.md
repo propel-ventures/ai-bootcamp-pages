@@ -823,6 +823,42 @@ Answer: How do I configure the system?"""
 3. View the JSON conversation history
 4. Note the TTL countdown (24 hours default)
 
+### Part 4 (Optional): Handling Non-Text PDFs
+
+**Challenge:** The bootcamp app's current PDF extraction only handles text-based PDFs. Extend it to support documents where simple text extraction fails.
+
+#### The Problem
+
+The current PyMuPDF implementation returns empty or garbage text for:
+- **Scanned documents** - Images of text, not actual text
+- **PDFs with diagrams/charts** - Visual information the model can't see
+- **Mixed content** - Text plus images that need interpretation
+
+#### Your Task
+
+Extend the bootcamp app's document processing to handle these cases. Your solution should:
+
+1. **Detect** when a PDF has insufficient extractable text
+2. **Extract** meaningful content from non-text PDFs
+3. **Integrate** with the existing upload flow
+
+#### Possible Approaches
+
+- **OCR** - Use optical character recognition for scanned documents (Docling, Tesseract, cloud OCR APIs)
+- **Multimodal models** - Render pages as images and use vision-capable LLMs (Claude, GPT-4o) to interpret content
+- **Hybrid** - Combine text extraction with OCR/vision as fallback
+- **Document AI services** - Azure Document Intelligence, AWS Textract, Google Document AI
+
+#### Success Criteria
+
+- Upload a scanned PDF and ask the agent questions about its content
+- Upload a PDF with charts/diagrams and verify the agent can describe the visual elements
+- The solution should gracefully fall back to simple text extraction when appropriate
+
+#### Considerations
+
+Think about trade-offs between cost, speed, accuracy, and complexity. Not every document needs expensive vision processing.
+
 ### Key Takeaway
 
 The bootcamp app demonstrates that **simple works**. No vector database, no embedding API calls - just a Python dictionary and direct context injection. Start here. Add RAG only when you outgrow these limits.
