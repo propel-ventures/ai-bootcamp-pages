@@ -555,6 +555,41 @@ curl -X POST http://localhost:8002/mcp \
 
 ---
 
+## Hands-On Exercise: Build Your Own MCP Server
+
+Now it's your turn. Build an MCP server from scratch and connect it to a client.
+
+### The Task
+
+**Create an MCP server of your choice and connect it to any MCP client.**
+
+You decide what it does. You decide how to build it. Use the resources provided in this module and the official SDK documentation to figure it out.
+
+### Requirements
+
+1. **Minimum 3 tools** - Include both read and write operations
+2. **Working client connection** - Successfully connect to an MCP client of your choice (Claude Desktop, VS Code, or any other MCP-compatible client)
+3. **Input validation** - Handle invalid inputs gracefully
+4. **Tool descriptions** - Each tool should describe what it does
+
+### Deliverables
+
+- Working MCP server code
+- Configuration for your chosen client
+- Brief demo showing it in action
+
+### Bonus: Add Authentication
+
+Deploy your server over HTTP and implement authentication:
+
+- OAuth 2.0 / bearer token validation
+- Token verification on each request
+- Integration with an identity provider (Auth0, etc.)
+
+See the Auth0 MCP documentation in the resources section.
+
+---
+
 ## Key Takeaways
 
 1. **MCP standardises AI-tool integration** - One protocol for many tools
