@@ -555,6 +555,32 @@ Check Phoenix—the `pii.detected` attribute should be `false` for these message
 
 Adjust `PII_CONFIDENCE_THRESHOLD` in your `.env` file (default is `0.7`) and restart the backend. Test with ambiguous text like partial phone numbers (`555-1234`) to see how the threshold affects detection sensitivity.
 
+#### Optional Exercise: Add a New PII Entity Type
+
+**Goal:** Extend the PII detector to recognize a new entity type not currently supported.
+
+**Steps:**
+
+1. **Fork the AI Bootcamp repository** and create a new branch for your changes
+
+2. **Review the existing implementation** in `ai-bootcamp-app/backend/app/security/pii_detector.py` to understand how entity types are configured
+
+3. **Choose a new PII type** to implement—pick something relevant to your region or industry
+
+4. **Implement and register** a new recognizer using Presidio's pattern-based or custom recognizer approach
+
+5. **Add tests** for your new entity type in `tests/security/`
+
+6. **Test locally** by sending messages containing your new PII type through the chat UI
+
+7. **Create a Pull Request** to share your implementation:
+   - Title: `feat(security): Add [YOUR_ENTITY_TYPE] PII detection`
+   - Description: Include what the entity type is, regex pattern used, and test cases
+
+**Resources:**
+- [Presidio Custom Recognizers Documentation](https://microsoft.github.io/presidio/analyzer/adding_recognizers/)
+- [Presidio Supported Entities](https://microsoft.github.io/presidio/supported_entities/)
+
 ### Detected PII Types
 
 | Entity Type | Example | Use Case |
