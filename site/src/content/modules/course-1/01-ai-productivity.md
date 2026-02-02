@@ -197,6 +197,35 @@ public class PiiRedactionService
 - You can then ask the agent to create the pull request description based on the changes made
 - Consider creating custom prompts/slash commands (e.g., `/raise-pull-request`, `/draft-commit-message`) for common workflows
 - Set up GitHub MCP integration if available.
+  1. Using your own github token (GITHUB_TOKEN)
+    - Install the `gh` CLI
+      ```
+      // For MacOS
+      brew install git
+      // For Linux
+      apt-get install git
+      ```
+    - Authenticate your GitHub account via CLI:
+      ```
+      gh auth login
+      ```
+  2. Using a Personal Access Token (PAT)
+  - GitHub MCP requires a fine‑grained GitHub Personal Access Token (PAT).
+  - Create a PAT using GitHub's official documentation: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+  - Minimum scopes required to create pull requests:
+   
+   | Permission | Description | Access |
+   |:-----------|:------------|:-------|
+   | Contents | Repository contents, commits, branches, downloads, releases, and merges | Read & write |
+   | Pull requests | Pull requests and related comments, assignees, labels, milestones, and merges | Read & write |
+   | Metadata (default) | Search repositories, list collaborators, and access repository metadata | Read only |
+   
+  - Add the PAT to your AI coding assistant's MCP configuration. Example (Claude Code):
+    ```bash
+    claude mcp add-json github '{"type":"http","url":"https://api.githubcopilot.com/mcp","headers":{"Authorization":"Bearer YOUR_GITHUB_PAT"}}'
+    ```
+  - Security: store PATs in a secure secret store (OS keychain, Vault, or GitHub Secrets) and never commit them to source control.
+
 - It appears lazy but overtime, you will have standardised and high quality pull request descriptions while saving your time
 - In practice, once the PR is raised, you would ask a team member to review the code. Small PRs for the win; nothing chnaged with AI since we are not vibe coding!
 - In addition, you should have AI agent set up to do code reviews as well.
