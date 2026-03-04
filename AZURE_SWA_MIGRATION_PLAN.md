@@ -45,7 +45,7 @@ Landing page -> /access/ form -> reveals bootcamp links
 
 ## Workflow Trigger Behavior
 
-- Workflow runs on push to `main` when `site/**` or workflow file changes.
+- Workflow runs on push to `main` and `feature/access-control` when `site/**` or workflow file changes.
 - If `AZURE_STATIC_WEB_APPS_API_TOKEN` is missing, deploy job is skipped (no pipeline failure).
 - Existing GitHub Pages workflow keeps `BASE_PATH=/ai-bootcamp-pages` for compatibility.
 
