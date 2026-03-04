@@ -35,6 +35,8 @@ jobs:
 
       - name: Build Astro
         working-directory: site
+        env:
+          BASE_PATH: /ai-bootcamp-pages
         run: npm run build
 
       - name: Upload artifact
