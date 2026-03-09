@@ -2,6 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 
 const baseUrl = import.meta.env.BASE_URL;
+const accessFormUrl = import.meta.env.PUBLIC_ACCESS_FORM_URL ?? '';
+const accessWebhookUrl = import.meta.env.PUBLIC_ACCESS_FORM_WEBHOOK_URL ?? '';
+const targetTab = 'Engineers';
+const bootcamp = 'engineers';
+const workbookName = 'AI Bootcamp Access';
 ---
 
 <Layout title="Request Access" description="Complete a short form to access the AI Bootcamp content.">
@@ -9,58 +14,152 @@ const baseUrl = import.meta.env.BASE_URL;
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8">
       <span class="inline-block text-sm font-semibold text-propel-cyan bg-propel-cyan/20 px-3 py-1 rounded-full">Access Form</span>
       <h1 class="text-3xl md:text-4xl font-bold text-propel-navy mt-4 mb-3">AI Bootcamp Access</h1>
-      <p class="text-gray-600 mb-8">
-        Fill out your details to unlock the bootcamp links.
-      </p>
 
-      <form id="access-form" class="space-y-4">
-        <div>
-          <label for="name" class="block text-sm font-medium text-propel-navy mb-1">Full name</label>
-          <input id="name" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
-        </div>
+      {accessFormUrl ? (
+        <>
+          <p class="text-gray-700 mb-6">
+            Complete the Microsoft Form to request access. Form responses sync directly to Excel Online.
+          </p>
 
-        <div>
-          <label for="email" class="block text-sm font-medium text-propel-navy mb-1">Work email</label>
-          <input id="email" name="email" type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
-        </div>
+          <a
+            href={accessFormUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-primary inline-block"
+          >
+            Open Microsoft Access Form
+          </a>
 
-        <div>
-          <label for="team" class="block text-sm font-medium text-propel-navy mb-1">Team / role</label>
-          <input id="team" name="team" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
-        </div>
+          <p class="text-sm text-gray-600 mt-4">
+            After you submit, use the links shown on the form confirmation page.
+          </p>
+          <p class="text-xs text-gray-500 mt-4">
+            Configuration: set `PUBLIC_ACCESS_FORM_URL` to enable Microsoft Forms mode.
+          </p>
+        </>
+      ) : (
+        <>
+          <p class="text-gray-600 mb-8">
+            Fill out your details to unlock the bootcamp links.
+          </p>
 
-        <button type="submit" class="btn-primary w-full md:w-auto">Get Bootcamp Links</button>
-      </form>
+          <form id="access-form" class="space-y-4">
+            <div>
+              <label for="name" class="block text-sm font-medium text-propel-navy mb-1">Full name</label>
+              <input id="name" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
 
-      <div id="access-result" class="hidden mt-8 p-4 md:p-6 border border-propel-cyan/40 bg-propel-cyan/10 rounded-xl">
-        <h2 class="text-xl font-semibold text-propel-navy mb-2">Access Granted</h2>
-        <p class="text-gray-700 mb-4">Use the links below to enter the bootcamp.</p>
-        <div class="flex flex-col md:flex-row gap-3">
-          <a href={`${baseUrl}course-1/`} class="btn-secondary text-center">Week 1: Elements of AI Engineering</a>
-          <a href={`${baseUrl}course-2/`} class="btn-secondary text-center">Week 2: AI Workflows & Engineering</a>
-        </div>
-      </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-propel-navy mb-1">Work email</label>
+              <input id="email" name="email" type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
+
+            <div>
+              <label for="team" class="block text-sm font-medium text-propel-navy mb-1">Team / role</label>
+              <input id="team" name="team" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
+
+            <button type="submit" class="btn-primary w-full md:w-auto">Get Bootcamp Links</button>
+          </form>
+
+          <p id="access-status" class="hidden mt-4 text-sm rounded-lg px-3 py-2"></p>
+
+          <div id="access-result" class="hidden mt-8 p-4 md:p-6 border border-propel-cyan/40 bg-propel-cyan/10 rounded-xl">
+            <h2 class="text-xl font-semibold text-propel-navy mb-2">Access Granted</h2>
+            <p class="text-gray-700 mb-4">Use the links below to enter the bootcamp.</p>
+            <div class="flex flex-col md:flex-row gap-3">
+              <a href={`${baseUrl}course-1/`} class="btn-secondary text-center">Week 1: Elements of AI Engineering</a>
+              <a href={`${baseUrl}course-2/`} class="btn-secondary text-center">Week 2: AI Workflows & Engineering</a>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 mt-6">
+            Access request data is sent to Excel Online when the webhook endpoint is configured.
+          </p>
+        </>
+      )}
     </div>
   </section>
 
-  <script is:inline>
-    const form = document.getElementById('access-form');
-    const result = document.getElementById('access-result');
+  {!accessFormUrl && (
+    <script define:vars={{ accessWebhookUrl, targetTab, bootcamp, workbookName }}>
+      const form = document.getElementById('access-form');
+      const result = document.getElementById('access-result');
+      const status = document.getElementById('access-status');
 
-    if (form && result) {
-      form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const data = new FormData(form);
-        const payload = {
-          name: data.get('name'),
-          email: data.get('email'),
-          team: data.get('team'),
-          submittedAt: new Date().toISOString(),
-        };
+      const statusClasses = {
+        success: 'mt-4 text-sm rounded-lg px-3 py-2 text-green-700 bg-green-50 border border-green-200',
+        warning: 'mt-4 text-sm rounded-lg px-3 py-2 text-amber-700 bg-amber-50 border border-amber-200',
+        neutral: 'mt-4 text-sm rounded-lg px-3 py-2 text-gray-700 bg-gray-100 border border-gray-200',
+      };
 
-        localStorage.setItem('bootcamp-access-request', JSON.stringify(payload));
-        result.classList.remove('hidden');
-      });
-    }
-  </script>
+      const setStatus = (message, tone = 'neutral') => {
+        if (!status) {
+          return;
+        }
+        status.textContent = message;
+        status.className = statusClasses[tone] ?? statusClasses.neutral;
+        status.classList.remove('hidden');
+      };
+
+      const normalizeValue = (value) => {
+        if (typeof value === 'string') {
+          return value.trim();
+        }
+        return '';
+      };
+
+      if (form && result) {
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          const data = new FormData(form);
+          const payload = {
+            name: normalizeValue(data.get('name')),
+            email: normalizeValue(data.get('email')),
+            team: normalizeValue(data.get('team')),
+            bootcamp,
+            targetTab,
+            workbookName,
+            submittedAt: new Date().toISOString(),
+            sourceUrl: window.location.href,
+            userAgent: navigator.userAgent,
+          };
+
+          localStorage.setItem('bootcamp-access-request', JSON.stringify(payload));
+
+          let storedRemotely = false;
+          if (accessWebhookUrl) {
+            try {
+              const response = await fetch(accessWebhookUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Unexpected status: ${response.status}`);
+              }
+              storedRemotely = true;
+            } catch (error) {
+              console.error('Failed to submit access request to webhook', error);
+            }
+          }
+
+          if (storedRemotely) {
+            setStatus('Saved. Your details were stored to Excel Online.', 'success');
+          } else if (!accessWebhookUrl) {
+            setStatus('Webhook not configured yet. Saved locally in this browser only.', 'warning');
+          } else {
+            setStatus('Could not reach Excel endpoint. Saved locally in this browser only.', 'warning');
+          }
+
+          result.classList.remove('hidden');
+          form.reset();
+        });
+      }
+    </script>
+  )}
 </Layout>

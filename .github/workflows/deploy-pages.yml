@@ -37,6 +37,8 @@ jobs:
         working-directory: site
         env:
           BASE_PATH: /ai-bootcamp-pages
+          PUBLIC_ACCESS_FORM_URL: ${{ secrets.PUBLIC_ACCESS_FORM_URL }}
+          PUBLIC_ACCESS_FORM_WEBHOOK_URL: ${{ secrets.PUBLIC_ACCESS_FORM_WEBHOOK_URL }}
         run: npm run build
 
       - name: Upload artifact
