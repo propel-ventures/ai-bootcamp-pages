@@ -9,16 +9,16 @@ const bootcamp = 'engineers';
 const workbookName = 'AI Bootcamp Access';
 ---
 
-<Layout title="Request Access" description="Complete a short form to access the AI Bootcamp content.">
+<Layout title="Join the AI Bootcamp" description="Request your spot in the AI Bootcamp with a quick form.">
   <section class="max-w-3xl mx-auto px-4 md:px-8 py-12">
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8">
-      <span class="inline-block text-sm font-semibold text-propel-cyan bg-propel-cyan/20 px-3 py-1 rounded-full">Access Form</span>
-      <h1 class="text-3xl md:text-4xl font-bold text-propel-navy mt-4 mb-3">AI Bootcamp Access</h1>
+      <span class="inline-block text-sm font-semibold text-propel-cyan bg-propel-cyan/20 px-3 py-1 rounded-full">Quick Form</span>
+      <h1 class="text-3xl md:text-4xl font-bold text-propel-navy mt-4 mb-3">Join the AI Bootcamp</h1>
 
       {accessFormUrl ? (
         <>
           <p class="text-gray-700 mb-6">
-            Complete the Microsoft Form to request access. Form responses sync directly to Excel Online.
+            Ready to level up your AI skills? Request your spot by filling out the quick form below. It only takes a minute.
           </p>
 
           <a
@@ -27,20 +27,17 @@ const workbookName = 'AI Bootcamp Access';
             rel="noopener noreferrer"
             class="btn-primary inline-block"
           >
-            Open Microsoft Access Form
+            Request Access
           </a>
 
           <p class="text-sm text-gray-600 mt-4">
-            After you submit, use the All Courses link shown on the form confirmation page.
-          </p>
-          <p class="text-xs text-gray-500 mt-4">
-            Configuration: set `PUBLIC_ACCESS_FORM_URL` to enable Microsoft Forms mode.
+            Once you've submitted, you'll see a confirmation page with everything you need to get started.
           </p>
         </>
       ) : (
         <>
-          <p class="text-gray-600 mb-8">
-            Fill out your details to unlock the bootcamp links.
+          <p class="text-gray-700 mb-8">
+            Ready to level up your AI skills? Request your spot by filling out the quick form below. It only takes a minute.
           </p>
 
           <form id="access-form" class="space-y-4">
@@ -59,22 +56,18 @@ const workbookName = 'AI Bootcamp Access';
               <input id="team" name="team" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
             </div>
 
-            <button type="submit" class="btn-primary w-full md:w-auto">Get Bootcamp Links</button>
+            <button type="submit" class="btn-primary w-full md:w-auto">Request Access</button>
           </form>
 
           <p id="access-status" class="hidden mt-4 text-sm rounded-lg px-3 py-2"></p>
 
           <div id="access-result" class="hidden mt-8 p-4 md:p-6 border border-propel-cyan/40 bg-propel-cyan/10 rounded-xl">
-            <h2 class="text-xl font-semibold text-propel-navy mb-2">Access Granted</h2>
-            <p class="text-gray-700 mb-4">Use the course hub below to enter any week or module.</p>
+            <h2 class="text-xl font-semibold text-propel-navy mb-2">You're all set</h2>
+            <p class="text-gray-700 mb-4">Your request is in. Everything you need to get started is below.</p>
             <div class="flex flex-col md:flex-row gap-3">
               <a href={`${baseUrl}courses/`} class="btn-secondary text-center">View All Courses</a>
             </div>
           </div>
-
-          <p class="text-xs text-gray-500 mt-6">
-            Access request data is sent to Excel Online when the webhook endpoint is configured.
-          </p>
         </>
       )}
     </div>
@@ -148,11 +141,11 @@ const workbookName = 'AI Bootcamp Access';
           }
 
           if (storedRemotely) {
-            setStatus('Saved. Your details were stored to Excel Online.', 'success');
+            setStatus("Thanks. Your request was received and you're ready to get started.", 'success');
           } else if (!accessWebhookUrl) {
-            setStatus('Webhook not configured yet. Saved locally in this browser only.', 'warning');
+            setStatus('Thanks. Your request was saved in this browser, and your course links are ready below.', 'warning');
           } else {
-            setStatus('Could not reach Excel endpoint. Saved locally in this browser only.', 'warning');
+            setStatus('Thanks. We could not reach the Excel endpoint, but your request was saved in this browser and your course links are ready below.', 'warning');
           }
 
           result.classList.remove('hidden');
