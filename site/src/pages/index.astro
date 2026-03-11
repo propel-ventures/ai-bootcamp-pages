@@ -6,7 +6,7 @@ const baseUrl = import.meta.env.BASE_URL;
 const withBase = (path = '') => `${baseUrl}${path}`.replace(/\/{2,}/g, '/');
 ---
 
-<Layout title="Home">
+<Layout title="Home" robots="index,follow" googlebot="index,follow">
   <!-- Hero Section -->
   <section class="bg-propel-navy text-white py-16 md:py-24 relative overflow-hidden">
     <div class="absolute inset-0 opacity-10">

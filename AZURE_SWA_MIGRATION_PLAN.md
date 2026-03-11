@@ -27,10 +27,10 @@ Landing page -> /access/ form -> reveals bootcamp links
 1. Azure SWA deployment workflow:
    - `.github/workflows/deploy-azure-swa.yml`
    - builds with `BASE_PATH=/` for root-domain URLs
-2. No-index controls:
+2. Selective indexing controls:
    - `site/public/robots.txt`
-   - `site/public/staticwebapp.config.json` (`X-Robots-Tag`)
    - `<meta name="robots" ...>` in layout
+   - home page opts into indexing, all other pages default to `noindex`
 3. Lightweight form gate:
    - `site/src/pages/access.astro`
    - home links now point users to `/access/`
@@ -60,10 +60,10 @@ After validating Azure default URL:
 ## Cutover Checklist
 
 1. Confirm Azure URL is live and rendering correctly.
-2. Confirm no-index headers/tags are present:
-   - `X-Robots-Tag`
-   - `robots.txt` = `Disallow: /`
-   - HTML robots meta tag
+2. Confirm indexing rules are present:
+   - home page HTML robots meta tag = `index,follow`
+   - course/access pages HTML robots meta tag = `noindex,...`
+   - `robots.txt` disallows `/access`, `/courses`, `/course-1`, `/course-2`
 3. Disable GitHub Pages deployment/settings after Azure is verified.
 4. Request removal of old indexed URLs in Google Search Console.
 
