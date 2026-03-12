@@ -1,9 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import CourseCard from '../components/CourseCard.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+const withBase = (path = '') => `${baseUrl}${path}`.replace(/\/{2,}/g, '/');
 ---
 
-<Layout title="Home">
+<Layout title="Home" robots="index,follow" googlebot="index,follow">
   <!-- Hero Section -->
   <section class="bg-propel-navy text-white py-16 md:py-24 relative overflow-hidden">
     <div class="absolute inset-0 opacity-10">
@@ -13,7 +16,7 @@ import CourseCard from '../components/CourseCard.astro';
     <!-- Rocket lift-off background image -->
     <div class="absolute right-0 bottom-0 w-1/2 h-full opacity-30 md:opacity-50 pointer-events-none">
       <img
-        src="/ai-bootcamp-pages/rocket-liftoff.png"
+        src={withBase('rocket-liftoff.png')}
         alt=""
         class="absolute right-0 bottom-0 w-full h-full object-contain object-right-bottom"
       />
@@ -28,7 +31,7 @@ import CourseCard from '../components/CourseCard.astro';
           context engineering, agentic workflows, and production systems.
         </p>
         <div class="mt-8 flex flex-wrap gap-4">
-          <a href="/ai-bootcamp-pages/course-1/" class="btn-primary">
+          <a href={withBase('access/')} class="btn-primary">
             Start Learning
           </a>
         </div>
@@ -72,7 +75,7 @@ import CourseCard from '../components/CourseCard.astro';
         </div>
         <div class="flex-1 flex justify-center">
           <img
-            src="/ai-bootcamp-pages/ai-engineering-rings.png"
+            src={withBase('ai-engineering-rings.png')}
             alt="AI Engineering at the intersection of Product Strategy, AI Strategy, and Engineering"
             class="max-w-sm w-full"
           />
@@ -97,14 +100,14 @@ import CourseCard from '../components/CourseCard.astro';
         title="Elements of AI Engineering"
         week="Week 1"
         description="Master AI coding assistants, working with models, context engineering, MCP, and enterprise foundations."
-        href="/ai-bootcamp-pages/course-1/"
+        href={withBase('access/')}
         moduleCount={5}
       />
       <CourseCard
         title="AI Workflows & Engineering"
         week="Week 2"
         description="Build production-ready AI workflows with frameworks, agentic development, and human-in-the-loop patterns."
-        href="/ai-bootcamp-pages/course-2/"
+        href={withBase('access/')}
         moduleCount={5}
       />
     </section>
@@ -114,7 +117,7 @@ import CourseCard from '../components/CourseCard.astro';
   <section class="bg-propel-navy py-16 relative overflow-hidden">
     <div class="absolute left-0 bottom-0 w-48 md:w-64 opacity-80 pointer-events-none">
       <img
-        src="/ai-bootcamp-pages/astronaut-flag.png"
+        src={withBase('astronaut-flag.png')}
         alt=""
         class="w-full"
       />
@@ -126,7 +129,7 @@ import CourseCard from '../components/CourseCard.astro';
       <p class="text-xl text-white/80 max-w-2xl mx-auto mb-8">
         Join the bootcamp and gain the skills to build the next generation of AI-powered applications.
       </p>
-      <a href="/ai-bootcamp-pages/course-1/" class="btn-primary inline-block">
+      <a href={withBase('access/')} class="btn-primary inline-block">
         Begin Week 1
       </a>
     </div>

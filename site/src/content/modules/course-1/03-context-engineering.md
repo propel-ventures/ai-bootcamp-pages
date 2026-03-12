@@ -686,7 +686,7 @@ MEMORY__MAX_THREAD_MESSAGES=50
 
 📁 **See configuration:** [config.py](https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/memory/config.py)
 
-> **Deep Dive**: See [Course 2, Module 3: Memory Management - Hybrid Redis + PostgreSQL Architecture](/ai-bootcamp-pages/course-2/03-memory-management/) for production implementation patterns including the Context Provider pattern, ConversationSyncService, database schemas, and graceful degradation strategies.
+> **Deep Dive**: See [Course 2, Module 3: Memory Management - Hybrid Redis + PostgreSQL Architecture](../../course-2/03-memory-management/) for production implementation patterns including the Context Provider pattern, ConversationSyncService, database schemas, and graceful degradation strategies.
 
 ### 8. PDF Tooling
 

@@ -5,17 +5,19 @@ import ModuleCard from '../../components/ModuleCard.astro';
 
 const modules = await getCollection('modules', ({ data }) => data.course === 1);
 const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
+const baseUrl = import.meta.env.BASE_URL;
+const withBase = (path = '') => `${baseUrl}${path}`.replace(/\/{2,}/g, '/');
 ---
 
 <Layout title="Course 1: Elements of AI Engineering">
   <!-- Course Header -->
   <section class="bg-propel-navy text-white py-12 relative overflow-hidden">
     <div class="absolute right-0 top-1/2 -translate-y-1/2 w-32 md:w-48 opacity-40 pointer-events-none">
-      <img src="/ai-bootcamp-pages/flying-spaceman.png" alt="" class="w-full" />
+      <img src={withBase('flying-spaceman.png')} alt="" class="w-full" />
     </div>
     <div class="max-w-4xl mx-auto px-4 md:px-8 relative z-10">
       <nav class="mb-6">
-        <a href="/ai-bootcamp-pages/" class="text-propel-cyan hover:text-white transition-colors inline-flex items-center gap-1">
+        <a href={withBase('courses/')} class="text-propel-cyan hover:text-white transition-colors inline-flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -40,7 +42,7 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
           title={module.data.title}
           module={module.data.module}
           description={module.data.description}
-          href={`/ai-bootcamp-pages/course-1/${module.slug.replace('course-1/', '')}/`}
+          href={`${baseUrl}course-1/${module.slug.replace('course-1/', '')}/`}
         />
       ))}
     </section>
@@ -51,7 +53,7 @@ const sortedModules = modules.sort((a, b) => a.data.module - b.data.module);
         <p class="text-sm text-gray-500 mb-1">Up Next</p>
         <h3 class="text-lg font-semibold text-propel-navy">Week 2: AI Workflows & Engineering</h3>
       </div>
-      <a href="/ai-bootcamp-pages/course-2/" class="btn-secondary whitespace-nowrap">
+      <a href={withBase('course-2/')} class="btn-secondary whitespace-nowrap">
         View Week 2
       </a>
     </div>

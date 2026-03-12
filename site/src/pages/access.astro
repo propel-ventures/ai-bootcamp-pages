@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+const accessFormUrl = import.meta.env.PUBLIC_ACCESS_FORM_URL ?? '';
+const accessWebhookUrl = import.meta.env.PUBLIC_ACCESS_FORM_WEBHOOK_URL ?? '';
+const targetTab = 'Engineers';
+const bootcamp = 'engineers';
+const workbookName = 'AI Bootcamp Access';
+---
+
+<Layout title="Join the AI Bootcamp" description="Request your spot in the AI Bootcamp with a quick form.">
+  <section class="max-w-3xl mx-auto px-4 md:px-8 py-12">
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8">
+      <span class="inline-block text-sm font-semibold text-propel-cyan bg-propel-cyan/20 px-3 py-1 rounded-full">Quick Form</span>
+      <h1 class="text-3xl md:text-4xl font-bold text-propel-navy mt-4 mb-3">Join the AI Bootcamp</h1>
+
+      {accessFormUrl ? (
+        <>
+          <p class="text-gray-700 mb-6">
+            Ready to level up your AI skills? Request your spot by filling out the quick form below. It only takes a minute.
+          </p>
+
+          <a
+            href={accessFormUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-primary inline-block"
+          >
+            Request Access
+          </a>
+
+          <p class="text-sm text-gray-600 mt-4">
+            Once you've submitted, you'll see a confirmation page with everything you need to get started.
+          </p>
+        </>
+      ) : (
+        <>
+          <p class="text-gray-700 mb-8">
+            Ready to level up your AI skills? Request your spot by filling out the quick form below. It only takes a minute.
+          </p>
+
+          <form id="access-form" class="space-y-4">
+            <div>
+              <label for="name" class="block text-sm font-medium text-propel-navy mb-1">Full name</label>
+              <input id="name" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
+
+            <div>
+              <label for="email" class="block text-sm font-medium text-propel-navy mb-1">Work email</label>
+              <input id="email" name="email" type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
+
+            <div>
+              <label for="team" class="block text-sm font-medium text-propel-navy mb-1">Team / role</label>
+              <input id="team" name="team" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-propel-cyan" />
+            </div>
+
+            <button type="submit" class="btn-primary w-full md:w-auto">Request Access</button>
+          </form>
+
+          <p id="access-status" class="hidden mt-4 text-sm rounded-lg px-3 py-2"></p>
+
+          <div id="access-result" class="hidden mt-8 p-4 md:p-6 border border-propel-cyan/40 bg-propel-cyan/10 rounded-xl">
+            <h2 class="text-xl font-semibold text-propel-navy mb-2">You're all set</h2>
+            <p class="text-gray-700 mb-4">Your request is in. Everything you need to get started is below.</p>
+            <div class="flex flex-col md:flex-row gap-3">
+              <a href={`${baseUrl}courses/`} class="btn-secondary text-center">View All Courses</a>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  </section>
+
+  {!accessFormUrl && (
+    <script define:vars={{ accessWebhookUrl, targetTab, bootcamp, workbookName }}>
+      const form = document.getElementById('access-form');
+      const result = document.getElementById('access-result');
+      const status = document.getElementById('access-status');
+
+      const statusClasses = {
+        success: 'mt-4 text-sm rounded-lg px-3 py-2 text-green-700 bg-green-50 border border-green-200',
+        warning: 'mt-4 text-sm rounded-lg px-3 py-2 text-amber-700 bg-amber-50 border border-amber-200',
+        neutral: 'mt-4 text-sm rounded-lg px-3 py-2 text-gray-700 bg-gray-100 border border-gray-200',
+      };
+
+      const setStatus = (message, tone = 'neutral') => {
+        if (!status) {
+          return;
+        }
+        status.textContent = message;
+        status.className = statusClasses[tone] ?? statusClasses.neutral;
+        status.classList.remove('hidden');
+      };
+
+      const normalizeValue = (value) => {
+        if (typeof value === 'string') {
+          return value.trim();
+        }
+        return '';
+      };
+
+      if (form && result) {
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          const data = new FormData(form);
+          const payload = {
+            name: normalizeValue(data.get('name')),
+            email: normalizeValue(data.get('email')),
+            team: normalizeValue(data.get('team')),
+            bootcamp,
+            targetTab,
+            workbookName,
+            submittedAt: new Date().toISOString(),
+            sourceUrl: window.location.href,
+            userAgent: navigator.userAgent,
+          };
+
+          localStorage.setItem('bootcamp-access-request', JSON.stringify(payload));
+
+          let storedRemotely = false;
+          if (accessWebhookUrl) {
+            try {
+              const response = await fetch(accessWebhookUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Unexpected status: ${response.status}`);
+              }
+              storedRemotely = true;
+            } catch (error) {
+              console.error('Failed to submit access request to webhook', error);
+            }
+          }
+
+          if (storedRemotely) {
+            setStatus("Thanks. Your request was received and you're ready to get started.", 'success');
+          } else if (!accessWebhookUrl) {
+            setStatus('Thanks. Your request was saved in this browser, and your course links are ready below.', 'warning');
+          } else {
+            setStatus('Thanks. We could not reach the Excel endpoint, but your request was saved in this browser and your course links are ready below.', 'warning');
+          }
+
+          result.classList.remove('hidden');
+          form.reset();
+        });
+      }
+    </script>
+  )}
+</Layout>

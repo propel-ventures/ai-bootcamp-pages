@@ -64,7 +64,7 @@ quiz:
 
 Memory management enables AI agents to maintain context across conversations, providing a more natural and personalized user experience. This module covers implementing a **hybrid dual-layer memory architecture** that combines Redis for fast access with PostgreSQL for permanent storage.
 
-> **Prerequisite**: This module builds on concepts from [Course 1, Module 3: Context Engineering & RAG](/ai-bootcamp-pages/course-1/03-context-engineering/), which introduces memory management theory, memory decay strategies, and the role of Redis in context management. Here we provide hands-on implementation.
+> **Prerequisite**: This module builds on concepts from [Course 1, Module 3: Context Engineering & RAG](../../course-1/03-context-engineering/), which introduces memory management theory, memory decay strategies, and the role of Redis in context management. Here we provide hands-on implementation.
 
 ## Why Memory Matters
 
