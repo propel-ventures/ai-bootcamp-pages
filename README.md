@@ -2,7 +2,9 @@
 
 A two-week intensive program covering AI-powered development, context engineering, agentic workflows, and production systems.
 
-**Live site:** https://propel-ventures.github.io/ai-bootcamp-pages/
+**Live site:** 
+ - https://aidevbootcamp.propelventures.ai
+ - https://propel-ventures.github.io/ai-bootcamp-pages 
 
 ## Curriculum
 
