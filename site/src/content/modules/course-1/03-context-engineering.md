@@ -11,10 +11,10 @@ objectives:
   - "Understand memory types and when to use them vs RAG"
 resources:
   - title: "LangChain RAG Tutorial"
-    url: "https://python.langchain.com/docs/tutorials/rag/"
+    url: "https://docs.langchain.com/oss/python/langchain/rag"
     type: "docs"
   - title: "Docling Documentation"
-    url: "https://ds4sd.github.io/docling/"
+    url: "https://docling-project.github.io/docling/"
     type: "docs"
   - title: "Bootcamp App - Documents Module"
     url: "https://github.com/propel-ventures/ai-bootcamp/tree/main/ai-bootcamp-app/backend/app/documents"
@@ -180,7 +180,7 @@ async def run_agent(request: AgentRunRequest):
 
 | Limitation | Impact |
 |------------|--------|
-| **Context window limits** | Can't exceed ~100k tokens per document |
+| **Context window limits** | A document must fit the model's context window (today ~200K–1M tokens) |
 | **No semantic search** | Must select documents explicitly |
 | **Memory usage** | All documents in RAM |
 | **No relevance ranking** | All context weighted equally |
@@ -287,7 +287,7 @@ QUERY PHASE (Online - every user query)
 
 ```python
 # Example: Recursive character splitting with overlap
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,      # Target chunk size in characters
@@ -306,7 +306,7 @@ Embeddings map text to high-dimensional vectors where similar meanings are close
 | `text-embedding-3-small` (OpenAI) | 1536 | Good balance of cost/quality |
 | `text-embedding-3-large` (OpenAI) | 3072 | Higher quality, higher cost |
 | `all-MiniLM-L6-v2` (Sentence Transformers) | 384 | Free, runs locally |
-| `voyage-large-2` (Voyage AI) | 1024 | Strong retrieval performance |
+| `voyage-4` (Voyage AI) | 1024 | Strong retrieval; shared embedding space across the Voyage 4 series (`voyage-4-large` / `voyage-4-lite`) means you can switch models without re-indexing |
 
 ```python
 # Example: Creating embeddings
@@ -441,17 +441,15 @@ response = llm.complete_structured(
 
 ```python
 import instructor
-from openai import OpenAI
 from pydantic import BaseModel
 
-client = instructor.from_openai(OpenAI())
+client = instructor.from_provider("openai/gpt-5.4-mini")
 
 class UserInfo(BaseModel):
     name: str
     age: int
 
 user = client.chat.completions.create(
-    model="gpt-4",
     response_model=UserInfo,
     messages=[{"role": "user", "content": "John Doe is 30 years old"}]
 )
@@ -469,10 +467,10 @@ class CityInfo(BaseModel):
     country: str
     population: int
 
-agent = Agent('openai:gpt-4', result_type=CityInfo)
+agent = Agent('openai:gpt-5.4-mini', output_type=CityInfo)
 result = agent.run_sync("Tell me about Paris")
-# result.data.name = "Paris"
-# result.data.country = "France"
+# result.output.name = "Paris"
+# result.output.country = "France"
 ```
 
 **Native Provider Support** - OpenAI and Anthropic have built-in structured output
@@ -483,7 +481,7 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.4-mini",
     response_format={
         "type": "json_schema",
         "json_schema": {
@@ -710,7 +708,7 @@ def extract_text(pdf_bytes: bytes) -> str:
 
 #### Docling - Enterprise Document Understanding
 
-[Docling](https://ds4sd.github.io/docling/) is IBM's open-source library for parsing complex documents. It goes beyond simple text extraction to understand document structure.
+[Docling](https://docling-project.github.io/docling/) is an open-source document-parsing library, originally created by IBM Research and now hosted by the LF AI & Data Foundation. It goes beyond simple text extraction to understand document structure.
 
 **What Docling handles that PyMuPDF doesn't:**
 
@@ -743,7 +741,7 @@ markdown = result.document.export_to_markdown()
 
 # Access structured elements
 for table in result.document.tables:
-    print(table.export_to_dataframe())  # Tables as pandas DataFrames
+    print(table.export_to_dataframe(doc=result.document))  # Tables as pandas DataFrames
 ```
 
 **Why Markdown output matters:**
@@ -845,7 +843,7 @@ Extend the bootcamp app's document processing to handle these cases. Your soluti
 #### Possible Approaches
 
 - **OCR** - Use optical character recognition for scanned documents (Docling, Tesseract, cloud OCR APIs)
-- **Multimodal models** - Render pages as images and use vision-capable LLMs (Claude, GPT-4o) to interpret content
+- **Multimodal models** - Render pages as images and use vision-capable LLMs (Claude, GPT-5.5) to interpret content
 - **Hybrid** - Combine text extraction with OCR/vision as fallback
 - **Document AI services** - Azure Document Intelligence, AWS Textract, Google Document AI
 
