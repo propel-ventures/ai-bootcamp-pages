@@ -12,7 +12,7 @@ objectives:
   - "Manage costs in production with caching and monitoring"
 resources:
   - title: "DeepEval Documentation"
-    url: "https://docs.confident-ai.com/"
+    url: "https://deepeval.com/docs"
     type: "docs"
   - title: "AI Bootcamp Evals Architecture"
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/evals.md"
@@ -21,7 +21,7 @@ resources:
     url: "https://opentelemetry.io/docs/"
     type: "docs"
   - title: "Phoenix Observability"
-    url: "https://docs.arize.com/phoenix"
+    url: "https://arize.com/docs/phoenix"
     type: "docs"
   - title: "Presidio PII Detection"
     url: "https://microsoft.github.io/presidio/"
@@ -592,6 +592,9 @@ Adjust `PII_CONFIDENCE_THRESHOLD` in your `.env` file (default is `0.7`) and res
 | `IBAN_CODE` | DE89370400440532013000 | Banking |
 | `CRYPTO` | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | Wallet addresses |
 | `IP_ADDRESS` | 192.168.1.1 | Network data |
+| `US_PASSPORT` | 912803456 | Identity/travel documents |
+| `US_DRIVER_LICENSE` | D1234567 | Identity protection |
+| `US_BANK_NUMBER` | 123456789 | Banking |
 
 ### Production Checklist
 
@@ -638,13 +641,15 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
 │  ┌─────────────────┬────────────────┬────────────────┐          │
 │  │ Model           │ Input $/1M     │ Output $/1M    │          │
 │  ├─────────────────┼────────────────┼────────────────┤          │
-│  │ claude-haiku-4-5│ $0.25          │ $1.25          │          │
-│  │ claude-sonnet-4 │ $3.00          │ $15.00         │          │
-│  │ gpt-4o-mini     │ $0.15          │ $0.60          │          │
-│  │ gpt-4o          │ $2.50          │ $10.00         │          │
+│  │ claude-haiku-4-5│ $1.00          │ $5.00          │          │
+│  │ claude-sonnet-5 │ $3.00          │ $15.00         │          │
+│  │ gpt-5.4-mini    │ $0.75          │ $4.50          │          │
+│  │ gpt-5.5         │ $5.00          │ $30.00         │          │
 │  └─────────────────┴────────────────┴────────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> **Note:** Model names and per-token prices change frequently. The figures above reflect standard vendor rates as of mid-2026 — always re-verify against current pricing before relying on them for cost estimates.
 
 #### Cost Processor Implementation
 
