@@ -2,23 +2,23 @@
 title: "Working with Models"
 course: 1
 module: 2
-description: "Deploy and work with models in different contexts"
+description: "Choose and deploy models across API, self-hosted, and fine-tuned approaches, weighing cost, latency, and capability"
 objectives:
   - "Deploy and work with models in different contexts"
   - "Make informed decisions: API vs hosted vs fine-tuned"
   - "Understand model selection criteria: cost, latency, capability trade-offs"
 resources:
-  - title: "Azure AI Foundry Documentation"
-    url: "https://learn.microsoft.com/en-us/azure/ai-studio/"
+  - title: "Microsoft Foundry Documentation"
+    url: "https://learn.microsoft.com/en-us/azure/ai-foundry/"
     type: "docs"
   - title: "vLLM Documentation"
     url: "https://docs.vllm.ai/"
     type: "docs"
-  - title: "Microsoft Phi-3 Models"
-    url: "https://azure.microsoft.com/en-us/products/phi-3"
+  - title: "Microsoft Phi Open Models"
+    url: "https://azure.microsoft.com/en-us/products/phi/"
     type: "docs"
   - title: "Ollama"
-    url: "https://ollama.ai/"
+    url: "https://ollama.com/"
     type: "docs"
 quiz:
   - question: "When should you consider fine-tuning a model?"
@@ -55,7 +55,7 @@ cd ai-bootcamp/ai-bootcamp-app
 
 Follow the setup instructions in the repository README to get the application running locally.
 
-**Note:** The sample application code is written and geared towards Microsoft Foundry. The hands-on exercises will guide you through adapting it to work with AWS Bedrock and local model providers.
+**Note:** The sample application code is written and geared towards Microsoft Foundry. The hands-on exercises will guide you through adapting it to work with Amazon Bedrock and local model providers.
 
 ## Using Claude Code
 
@@ -105,24 +105,26 @@ Learn to work with models across different deployment contexts and make informed
 
 API providers offer the fastest path to production with managed infrastructure, but come with cost and data privacy considerations.
 
-#### Azure AI Foundry
-Enterprise-grade access to multiple AI models (Claude, GPT, Llama) through Azure's unified platform.
+#### Microsoft Foundry
+Enterprise-grade access to multiple AI models (Claude, GPT, Llama) through Azure's unified platform. (Formerly "Azure AI Foundry"; renamed to Microsoft Foundry, effective January 2026.)
+
+Claude on Foundry is offered via two hosting routes: **Hosted on Azure** (runs end-to-end on Azure infrastructure, so prompts and completions stay within Azure) and **Hosted on Anthropic infrastructure** (runs on Anthropic's infrastructure and exposes a fuller API/feature set). This is the trade-off the `.env` provider options below describe informally.
 
 **Key considerations:**
 - Access to multiple model providers through a single Azure endpoint
-- Enterprise authentication via Azure AD
+- Enterprise authentication via Microsoft Entra ID (formerly Azure AD)
 - Regional data residency options
 - Integrated with Azure's security and compliance features
 
 #### Azure OpenAI
-Direct access to OpenAI models with Azure's enterprise features.
+Direct access to OpenAI models with Azure's enterprise features. (Now offered within Microsoft Foundry, branded "Azure OpenAI in Microsoft Foundry Models".)
 
 **Key considerations:**
 - Deployment-based model access (you deploy specific models to your Azure instance)
 - Regional data residency options
-- Enterprise authentication via Azure AD
+- Enterprise authentication via Microsoft Entra ID (formerly Azure AD)
 
-#### AWS Bedrock
+#### Amazon Bedrock
 Access to multiple foundation models (Claude, Llama, Titan) through a unified AWS API.
 
 **Key considerations:**
@@ -146,9 +148,11 @@ When full LLM capability isn't needed, consider SLMs for cost and latency benefi
 
 | Model | Parameters | Best For |
 |-------|-----------|----------|
-| Phi-3 Mini | 3.8B | Reasoning, code generation |
-| SmolLM2 | 135M-1.7B | Classification, extraction |
+| Phi-4-mini | 3.8B | Reasoning, code generation |
+| SmolLM3 | 3B | Reasoning, multilingual, long-context |
 | Llama 3.2 | 1B-3B | General purpose, multilingual |
+
+> **Note:** These are current lightweight/on-device models chosen for cost and latency. Larger frontier families (e.g., Llama 4, the full Phi-4 models) exist when you need more capability.
 
 ### 4. Model Selection Criteria
 
@@ -174,15 +178,15 @@ Fine-tuning should be a last resort. Consider these alternatives first:
 
 ## Hands-On Exercise
 
-### Configure Azure AI Foundry with Claude
+### Configure Microsoft Foundry with Claude
 
-Set up the bootcamp app to use Claude models via Azure AI Foundry:
+Set up the bootcamp app to use Claude models via Microsoft Foundry:
 
-1. Navigate to the [Azure AI Foundry Project](https://ai.azure.com/foundryProject/overview?wsid=/subscriptions/c648d4fd-1497-4f7d-94e0-915a3cf1b5ca/resourceGroups/rg-baz-dev/providers/Microsoft.CognitiveServices/accounts/az-open-ai-rg-baz-dev/projects/az-open-ai-rg-baz-dev-project&tid=a5053235-83cf-48d5-a03f-da1154fe4b2b) in the Propel Azure account
+1. **Open or create a Microsoft Foundry project.** Sign in to [Microsoft Foundry](https://ai.azure.com/) with your own Azure subscription. If you don't already have a project, create a new one following the portal prompts (you'll need an Azure subscription with permission to deploy models).
 
-2. In the left navigation bar, click **Models + endpoints** to browse deployed models
+2. **Deploy a Claude model.** In your project, open the **Model catalog**, search for **claude-haiku-4-5**, and deploy it. Foundry offers two hosting versions — "Hosted on Azure" (runs entirely on Azure) or "Hosted on Anthropic infrastructure" (fuller feature set); either works for this exercise. Claude models are available in the **East US 2** and **Sweden Central** Global Standard regions.
 
-3. Select the **claude-haiku-4-5** model from the list of deployed models
+3. **Open your deployment.** In the left navigation bar, click **Models + endpoints**, then select your **claude-haiku-4-5** deployment.
 
 4. Copy the endpoint URL and API key from the model deployment page:
     - **API Key**: In the **Endpoint** section on the left, find the **Key** field and click the copy button
@@ -202,12 +206,12 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
     CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
 
     # Agent Framework Configuration
-    # Provider: "anthropic" (direct API), "foundry" (Azure AI Foundry), or "azure_openai"
+    # Provider: "anthropic" (direct API), "foundry" (Microsoft Foundry), or "azure_openai"
     AGENT__PROVIDER=foundry
     AGENT__AGENT_MODEL=claude-haiku-4-5
     AGENT__MAX_TOKENS=8192
 
-    # Azure AI Foundry (works with hosted tools like HostedWebSearchTool)
+    # Microsoft Foundry (works with hosted tools like HostedWebSearchTool)
     AGENT__FOUNDRY_API_KEY=your-foundry-api-key
     AGENT__FOUNDRY_ENDPOINT=https://your-endpoint.services.ai.azure.com/anthropic/
 
@@ -270,7 +274,7 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
     PII_CONFIDENCE_THRESHOLD=0.7
     ```
 
-6. Replace the placeholder values (`your-endpoint`, `your-foundry-api-key`, etc.) with the actual values from Azure AI Foundry
+6. Replace the placeholder values (`your-endpoint`, `your-foundry-api-key`, etc.) with the actual values from Microsoft Foundry
 
 7. Start the application using Docker Compose:
 
@@ -283,14 +287,14 @@ Set up the bootcamp app to use Claude models via Azure AI Foundry:
 
 ### Optional: Integrate Local Model Providers
 
-The bootcamp app currently supports cloud providers (Azure AI Foundry, Azure OpenAI, Anthropic API). Adding local model support requires implementing new provider integrations.
+The bootcamp app currently supports cloud providers (Microsoft Foundry, Azure OpenAI, Anthropic API). Adding local model support requires implementing new provider integrations.
 
 **Note:** These exercises require submitting a Pull Request to the [ai-bootcamp repository](https://github.com/propel-ventures/ai-bootcamp) to add local model provider compatibility.
 
 #### Option A: Ollama
 
-1. Install Ollama from [ollama.ai](https://ollama.ai)
-2. Pull a model: `ollama pull llama3.2` or `ollama pull phi3`
+1. Install Ollama from [ollama.com](https://ollama.com)
+2. Pull a model: `ollama pull llama3.2` or `ollama pull phi4-mini`
 3. Start Ollama (provides an API at `http://localhost:11434`)
 4. Implement Ollama provider support in the bootcamp app's agent framework
 5. Test your implementation and compare response quality/latency with cloud models
@@ -302,7 +306,7 @@ The bootcamp app currently supports cloud providers (Azure AI Foundry, Azure Ope
 #### Option B: LM Studio
 
 1. Download and install [LM Studio](https://lmstudio.ai)
-2. Download a model through the LM Studio UI (e.g., Phi-3 or Llama 3.2)
+2. Download a model through the LM Studio UI (e.g., Phi-4-mini or Llama 3.2)
 3. Start the local server (provides OpenAI-compatible API)
 4. Implement LM Studio provider support in the bootcamp app's agent framework
 5. Test your implementation and compare response quality/latency with cloud models
