@@ -22,7 +22,7 @@ resources:
     url: "https://github.com/modelcontextprotocol/csharp-sdk"
     type: "repo"
   - title: "Auth0 - Auth for MCP Servers"
-    url: "https://auth0.com/ai/docs/mcp/auth-for-mcp"
+    url: "https://auth0.com/ai/docs/auth-for-mcp"
     type: "docs"
   - title: "Crypto Wallet MCP Server (Bootcamp)"
     url: "https://github.com/propel-ventures/ai-bootcamp/tree/main/mcp-servers/crypto-wallet"
@@ -31,7 +31,7 @@ quiz:
   - question: "What transport layer is recommended for production MCP servers?"
     options:
       - "STDIO only"
-      - "HTTP with SSE for streaming"
+      - "Streamable HTTP"
       - "WebSockets"
       - "gRPC"
     answer: 1
@@ -206,13 +206,16 @@ if __name__ == "__main__":
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
 
 const server = new McpServer({ name: "crypto-wallet", version: "1.0.0" });
 
-server.tool(
+server.registerTool(
   "get_balance",
-  "Get the balance for a specific currency",
-  { currency: { type: "string", description: "Currency code" } },
+  {
+    description: "Get the balance for a specific currency",
+    inputSchema: { currency: z.string().describe("Currency code") },
+  },
   async ({ currency }) => {
     return {
       content: [{
@@ -230,19 +233,23 @@ await server.connect(transport);
 #### C# / .NET
 
 ```csharp
+using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 
-var builder = McpServerBuilder.Create(args);
+var builder = Host.CreateApplicationBuilder(args);
 
-builder.WithTools<WalletTools>();
+builder.Services
+    .AddMcpServer()
+    .WithStdioServerTransport()
+    .WithToolsFromAssembly();
 
-var server = builder.Build();
-await server.RunAsync();
+await builder.Build().RunAsync();
 
+[McpServerToolType]
 public class WalletTools
 {
-    [McpTool("get_balance"), Description("Get the balance for a specific currency")]
+    [McpServerTool(Name = "get_balance"), Description("Get the balance for a specific currency")]
     public static BalanceResult GetBalance(string currency)
     {
         return new BalanceResult
@@ -258,11 +265,11 @@ public class WalletTools
 
 | Concept | Python | TypeScript | C# / .NET |
 |---------|--------|------------|-----------|
-| **Server creation** | `FastMCP("name")` | `new McpServer({name})` | `McpServerBuilder.Create()` |
-| **Tool registration** | `@mcp.tool()` decorator | `server.tool()` method | `[McpTool]` attribute |
-| **Tool description** | Docstring | Second parameter | `[Description]` attribute |
-| **Type definitions** | Type hints | Schema object | Strong typing + attributes |
-| **Transport** | `mcp.run(transport="stdio")` | `StdioServerTransport()` | `builder.Build().RunAsync()` |
+| **Server creation** | `FastMCP("name")` | `new McpServer({name})` | `Host.CreateApplicationBuilder()` + `.AddMcpServer()` |
+| **Tool registration** | `@mcp.tool()` decorator | `server.registerTool()` method | `[McpServerTool]` (in `[McpServerToolType]` class) |
+| **Tool description** | Docstring | Config `description` | `[Description]` attribute |
+| **Type definitions** | Type hints | Config `inputSchema` (Zod) | Strong typing + attributes |
+| **Transport** | `mcp.run(transport="stdio")` | `StdioServerTransport()` | `.WithStdioServerTransport()` |
 
 ### Choosing Your SDK
 
@@ -383,9 +390,11 @@ When deploying MCP servers over HTTP (rather than local stdio), authentication b
 
 ### Key Principles
 
-1. **Bearer tokens only** - The MCP spec prohibits session-based auth; every request must include a valid access token
-2. **Verify every request** - Tokens must be validated on every inbound request to protected endpoints
-3. **Scoped permissions** - Use OAuth scopes to limit what actions an agent can perform
+1. **OAuth 2.1 with PKCE** - Remote HTTP servers act as OAuth 2.1 resource servers that validate a bearer token on every request (there is no session-based auth for remote servers). Clients use the Authorization Code flow with PKCE and the `S256` code challenge; the legacy implicit grant is not permitted.
+2. **Audience-bound tokens (RFC 8707)** - Clients must send the Resource Indicator (`resource` parameter) in authorization and token requests so the issued token is bound to the specific MCP server. Servers must reject any token not intended for them.
+3. **No token pass-through** - When calling upstream APIs, the server must not forward the client's token; it obtains its own credentials for downstream calls. This prevents the "confused deputy" problem.
+4. **Verify every request** - Tokens must be validated on every inbound request to protected endpoints.
+5. **Scoped permissions** - Use OAuth scopes to limit what actions an agent can perform.
 
 ### Auth0 for MCP
 
@@ -582,7 +591,7 @@ You decide what it does. You decide how to build it. Use the resources provided 
 
 Deploy your server over HTTP and implement authentication:
 
-- OAuth 2.0 / bearer token validation
+- OAuth 2.1 / bearer token validation
 - Token verification on each request
 - Integration with an identity provider (Auth0, etc.)
 
