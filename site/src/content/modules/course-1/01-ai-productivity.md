@@ -2,14 +2,14 @@
 title: "AI-Powered Developer Productivity"
 course: 1
 module: 1
-description: "Master AI coding assistants for daily productivity across all environments"
+description: "Use AI coding assistants effectively across desktop, pipeline, enterprise, and greenfield work"
 objectives:
   - "Master AI coding assistants for daily productivity across all environments"
   - "Apply pipeline-first development strategies (desktop and pipeline parity)"
   - "Tailor workflows for different contexts (enterprise vs greenfield)"
 resources:
   - title: "Cursor Documentation"
-    url: "https://docs.cursor.com/"
+    url: "https://cursor.com/docs"
     type: "docs"
   - title: "Claude Code Guide"
     url: "https://docs.anthropic.com/en/docs/claude-code"
@@ -51,7 +51,7 @@ Essential for all developers, this module aligns with development excellence pri
 - Best practices for reproducible builds
 
 ### Best Practices
-- AGENTS.md patterns for AI context
+- AGENTS.md patterns for AI context — the cross-tool open standard (a repo-root file that gives coding agents project context; complements tool-specific files like CLAUDE.md)
 - Workflow spec-driven development approaches
 - Using AI to understand legacy codebases
 
@@ -71,7 +71,7 @@ Essential for all developers, this module aligns with development excellence pri
 - You are ready, comprehending and understand every change made line by line, word by word. 
 - You are in control of the process at all times.
 - There is a place for vibe coding such as prototyping, spike and research but not code for production systems.
-- Cursor is the recommened AI coding assistant for high quality vibe coding meanwhile we recommend Claude code with Optus latest models for guide coding.
+- Cursor is the recommended AI coding assistant for high-quality vibe coding, meanwhile we recommend Claude Code with the latest Opus models (currently Claude Opus 4.8) for guide coding.
 - To learn about best AI model + tool combinations, follow Gosucoder on Youtube and watch [this episode](https://www.youtube.com/watch?v=jrQ8z-KMtek)
 
 ### Prerequisites
@@ -85,8 +85,8 @@ Essential for all developers, this module aligns with development excellence pri
 
 ### Task2
 - Say when you wanted to deploy this API, security requests to show that no PII is returned on any endpoints
-- Create a custom/sub agent (e.g., name it `implementation-plan`) to help generate a plan for any requirments in this repository
-- We usually donot create the conent of the custom/sub agents manually, rathe we copy from the community such as:
+- Create a custom/sub agent (e.g., name it `implementation-plan`) to help generate a plan for any requirements in this repository
+- We usually do not create the content of the custom/sub agents manually, rather we copy from the community such as:
   - Superpowers: https://github.com/obra/superpowers
   - Awesome Copilot: https://github.com/github/awesome-copilot/tree/main
 
@@ -97,12 +97,12 @@ In Claude Code:
 /plugin install superpowers@superpowers-marketplace
 ```
 
-- After you choose an Implementation-plan agent, select that agent and ask to to create a plan to implement PII redaction middleware that redacts email addresses, phone numbers, and tax file numbers (TFNs) from all API responses.
+- After you choose an Implementation-plan agent, select that agent and ask it to create a plan to implement PII redaction middleware that redacts email addresses, phone numbers, and tax file numbers (TFNs) from all API responses.
 - Depending on the model and AI coding assistant, the agent might overengineer the solution, so make sure to review the plan (no vibe planning)
 - Example of what to prompt: 
   - "Follow ALL instructions files in this repository"
   - "We need MVP solution with acceptable level of test coverage"
-  - "We should not move more than 2 integration tests and 5-10 unit tests"
+  - "We should not write more than 2 integration tests and 5-10 unit tests"
   - So you don't end up with poor solution say: "We need middleware so future endpoints can also benefit from this solution"
 - Notice how iteration in prompting and the order of the prompts matter and make a difference in the output.
 - They might call this prompt engineering, but it's really just effective solution design. 
@@ -128,13 +128,13 @@ Initial plan: 24 files (too complex)
 
 ### Task 3 Implement the plan
 
-- Before you start coding, check if you need to start a new session with your AI coding assistant
-- Rule of thumb: is context windows is more than 125k tokens, start a new session. Always keen an eye on the token usage
-- as of Dec 2025, Copilot doesn't show token usage, in the ai kit, there will be a prompt to get that infomation.
+- Before you start coding, check whether you need to reset context with your AI coding assistant
+- Modern models carry large context windows (200k–1M tokens), and tools like Claude Code auto-compact the conversation when it fills up (around 84% full). Rather than watching for a fixed token count, use the built-in controls: `/context` to inspect usage, `/compact` (optionally with focus instructions) to summarise and continue, and `/clear` at natural task boundaries. Always keep an eye on token usage.
+- VS Code and GitHub Copilot now surface token and context-window usage directly in the chat input, so you can monitor it as you work.
 
 **Check context usage example:**
 ```
-📊 Usage: 83.8k / 125k (67% Context Rot) → 🟡 5-8 turns remaining
+📊 Usage: 83.8k / 200k (67% Context Rot) → 🟡 5-8 turns remaining
 Consumers: MCP (35k) + Instructions (25k) + Attachments (12k) + History (8k)
 ```
 
@@ -178,7 +178,7 @@ public class PiiRedactionService
 - While the agent is running, take the time to think about what refactoring might be needed before the code gets too complex or messy
 - refactoring might include:
   - refactoring the test cases themselves for clarity and maintainability
-  - adding highlevel tests such as integration tests to ensure the middleware works as expected
+  - adding high-level tests such as integration tests to ensure the middleware works as expected
   - the timing of the refactor phase is important for best implementation and no plan can make this upfront
   - It is OK to go back to the plan if needed and refactor is the window to reconsider the overall design
   - It is OK to start new totally different approach since as you have seen, 90% of the code is generated by the AI coding assistant
@@ -187,20 +187,20 @@ public class PiiRedactionService
 - Finally, run all tests to ensure everything is working as expected.
 
 ### Task 4: Reflect and Share
-- Take a 10-15 minute break from the coding excercise and read the [DORA report on AI in 2025] (https://dora.dev/research/2025/dora-report/)
+- Take a 10-15 minute break from the coding exercise and read the [DORA report on AI in 2025](https://dora.dev/research/2025/dora-report/)
 - The main take away is how AI speeds up both you good practices as well as anti-patterns.
 - Post in the bootcamp channel your takeaways from the report. Keep an eye what others are saying as well.
 
 ### Task 5: Pull Request, Code Review
 - Create a pull request for your changes.
-- You can ask the agent to do reveiw the code locally (against your current instrustions/skills)
+- You can ask the agent to review the code locally (against your current instructions/skills)
 - You can then ask the agent to create the pull request description based on the changes made
 - Consider creating custom prompts/slash commands (e.g., `/raise-pull-request`, `/draft-commit-message`) for common workflows
 - Set up GitHub MCP integration if available.
 - It appears lazy but overtime, you will have standardised and high quality pull request descriptions while saving your time
-- In practice, once the PR is raised, you would ask a team member to review the code. Small PRs for the win; nothing chnaged with AI since we are not vibe coding!
+- In practice, once the PR is raised, you would ask a team member to review the code. Small PRs for the win; nothing changed with AI since we are not vibe coding!
 - In addition, you should have AI agent set up to do code reviews as well.
-- Github Copilot allows you to assign agent reviewers to PRs (soon it will be also allowing anthropic agents to do that)
+- GitHub Copilot lets you assign agent reviewers to PRs — you can request a Copilot code review from the GitHub UI or the `gh` CLI, and Anthropic's Claude models are already available as a model choice in Copilot
 - Whatever tool you use, make sure to ask your Platform Engineering team to help:
   - Set up the ai code reviewers for your team
   - Configure the instructions/skills for the reviewers
@@ -224,7 +224,7 @@ These MCP servers are must-haves for productive AI-assisted development:
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+      "args": ["-y", "@playwright/mcp@latest"]
     },
     "apm": {
       "type": "http",
@@ -260,9 +260,9 @@ These MCP servers are must-haves for productive AI-assisted development:
 
 
 ### Task 6 Spike (optional)
-- Having the default ai coder reviewers without the above is usally useless.
+- Having the default ai coder reviewers without the above is usually useless.
 - Once you have that ai agent setup in the pipeline, you can also assign a plan to the ai agent to resolve in the pipeline
-- You can save instructions for a percentage of pullrequest that are boring, safe or repetative for the agent to implement
+- You can save instructions for a percentage of pull requests that are boring, safe or repetitive for the agent to implement
 - You should aim 5-10% of your pull requests to be handled by the ai agent in the pipeline
 - Using Propel Copilot, try to assign the ai agent the same plan and see if it can produce the same results as your TDD workflow
 
@@ -318,9 +318,9 @@ git config --global alias.ai-kit '!bash -c "
 cp -r .github/instructions/* ../.github/instructions/
 cp -r .vscode/mcp.json ../.vscode/
 
-# Update .gitignore
-echo ".github/instructions/*.instructions.md" >> ../.gitignore
-echo ".vscode/mcp.json" >> ../.gitignore
+# Update .gitignore (only add entries that aren't already present)
+grep -qxF ".github/instructions/*.instructions.md" ../.gitignore || echo ".github/instructions/*.instructions.md" >> ../.gitignore
+grep -qxF ".vscode/mcp.json" ../.gitignore || echo ".vscode/mcp.json" >> ../.gitignore
 
 echo "✅ AI Kit synced successfully"
 ```
@@ -339,8 +339,8 @@ git ai-kit
 3. Updates MCP server configs
 4. Cleans up automatically
 
-### Optional: MCP Server Distribution
- - Add a git hook on new branches to run the same script.
+### Optional: Sync on New Branches
+- Add a git hook on new branches to run the same script.
 
 ### Optional: MCP Server Distribution
 
@@ -360,6 +360,8 @@ mkdir -p ~/mcp-servers
 cp .github/mcp-servers/*.exe ~/mcp-servers/
 chmod +x ~/mcp-servers/*.exe
 ```
+
+> **Note:** The `.exe` binaries above assume Windows. For Mac/Linux (or a mixed team), distribute platform-appropriate binaries or install servers via `npx`/package managers instead.
 
 ### Benefits
 - ✅ Single command syncs latest team standards
