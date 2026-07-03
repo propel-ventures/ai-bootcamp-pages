@@ -27,7 +27,7 @@ resources:
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/backend/app/db/models/message.py"
     type: "repo"
   - title: "Redis Python Client"
-    url: "https://redis-py.readthedocs.io/en/stable/"
+    url: "https://redis.io/docs/latest/develop/clients/redis-py/"
     type: "docs"
 quiz:
   - question: "What is the primary difference between thread memory and user preferences?"
@@ -212,6 +212,14 @@ async def _hydrate_from_db(self) -> list[dict]:
         await self._redis.expire(self._key, self._settings.thread_ttl_hours * 3600)
 
     return messages
+
+async def _get_messages_from_db(self) -> list[dict]:
+    """Load messages straight from PostgreSQL (Redis unavailable — no cache to fill)."""
+    conversation = self._conversation_repo.get_by_thread_id(self._thread_id)
+    if not conversation:
+        return []
+    db_messages = self._message_repo.get_by_conversation(conversation.id)
+    return [{"role": m.role, "content": m.content} for m in db_messages]
 ```
 
 ### `invoked()` - After Execution
@@ -238,6 +246,41 @@ async def invoked(self, user_message: str, assistant_message: str) -> None:
     ttl_seconds = self._settings.thread_ttl_hours * 3600
     await self._redis.expire(self._key, ttl_seconds)
 ```
+
+> **Trade-off:** `ltrim` keeps only the most recent `max_thread_messages` exchanges — older turns are dropped, not summarised, so long conversations lose their earliest context. For long-running threads, consider summarising trimmed history into a rolling summary rather than discarding it (see [Course 1, Module 3](../../course-1/03-context-engineering/) on memory decay strategies).
+
+### User Preferences Provider
+
+The `UserPreferencesProvider` follows the same pattern for long-lived, user-scoped facts. It stores preferences as a Redis **hash** (keyed by `user:{user_id}:preferences`) with a longer TTL, and is a no-op when no `user_id` is supplied:
+
+```python
+class UserPreferencesProvider:
+    """User-scoped preferences, stored as a Redis hash with a long TTL."""
+
+    def __init__(self, redis: Redis | None, settings: MemorySettings, user_id: str | None):
+        self._redis = redis
+        self._settings = settings
+        self._key = f"user:{user_id}:preferences" if user_id else None
+
+    async def invoking(self) -> str:
+        """Return stored preferences as context (empty string if none)."""
+        if not self._redis or not self._key:
+            return ""
+        prefs = await self._redis.hgetall(self._key)
+        if not prefs:
+            return ""
+        formatted = [f"{key.decode()}: {value.decode()}" for key, value in prefs.items()]
+        return "User preferences:\n" + "\n".join(formatted)
+
+    async def remember(self, key: str, value: str) -> None:
+        """Store or update a single preference and refresh its TTL."""
+        if not self._redis or not self._key:
+            return
+        await self._redis.hset(self._key, key, value)
+        await self._redis.expire(self._key, self._settings.user_ttl_days * 86400)
+```
+
+Guarding on `self._key` is what implements the "no `user_id` → preferences not used" row in the degradation table below.
 
 ## Configuration
 
@@ -324,6 +367,8 @@ CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 ### SQLAlchemy Models
 
 ```python
+from datetime import datetime, UTC
+
 class ConversationModel(Base):
     __tablename__ = "conversations"
 
@@ -331,8 +376,8 @@ class ConversationModel(Base):
     thread_id: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     user_id: Mapped[str | None] = mapped_column(String(255), index=True)
     title: Mapped[str | None] = mapped_column(String(500))
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     messages: Mapped[list["MessageModel"]] = relationship(back_populates="conversation")
 
@@ -344,7 +389,7 @@ class MessageModel(Base):
     conversation_id: Mapped[UUID] = mapped_column(ForeignKey("conversations.id"))
     role: Mapped[str] = mapped_column(String(50))
     content: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
 
     conversation: Mapped["ConversationModel"] = relationship(back_populates="messages")
 ```
@@ -355,15 +400,17 @@ The sync service bridges Redis and PostgreSQL with **asynchronous, fire-and-forg
 
 ```python
 class ConversationSyncService:
-    """Asynchronously persists Redis conversations to PostgreSQL."""
+    """Persists Redis conversations to PostgreSQL as a background task.
 
-    def __init__(
-        self,
-        conversation_repo: ConversationRepository,
-        message_repo: MessageRepository,
-    ):
-        self._conversation_repo = conversation_repo
-        self._message_repo = message_repo
+    Critically, it opens its OWN database session rather than reusing the
+    request-scoped one. The sync runs *after* the HTTP response is sent, by
+    which point FastAPI has already closed the request's session — reusing it
+    would raise. So the service is constructed with a session *factory*, not a
+    live session.
+    """
+
+    def __init__(self, session_factory: sessionmaker[Session]):
+        self._session_factory = session_factory
 
     async def sync_exchange(
         self,
@@ -373,42 +420,62 @@ class ConversationSyncService:
         assistant_message: str,
         document_ids: list[UUID] | None = None,
     ) -> None:
-        """Sync a conversation exchange to PostgreSQL (fire-and-forget)."""
+        """Sync one exchange to PostgreSQL, off the request path."""
         try:
-            # Get or create conversation by thread_id
-            conversation = self._conversation_repo.get_by_thread_id(thread_id)
+            # The repo calls are blocking, so run them in a worker thread to
+            # avoid stalling the event loop for other in-flight requests.
+            await asyncio.to_thread(
+                self._persist_exchange,
+                thread_id,
+                user_id,
+                user_message,
+                assistant_message,
+                document_ids,
+            )
+        except Exception as e:
+            # Log but don't crash - sync failures must not affect the user.
+            logger.error("Sync failed for thread %s: %s", thread_id, e)
+
+    def _persist_exchange(
+        self,
+        thread_id: str,
+        user_id: str | None,
+        user_message: str,
+        assistant_message: str,
+        document_ids: list[UUID] | None,
+    ) -> None:
+        # Dedicated session, scoped to this task and closed on block exit.
+        with self._session_factory() as session:
+            conversation_repo = ConversationRepository(session)
+            message_repo = MessageRepository(session)
+
+            # Idempotent get-or-create by thread_id
+            conversation = conversation_repo.get_by_thread_id(thread_id)
             if not conversation:
-                conversation = self._conversation_repo.create(
+                conversation = conversation_repo.create(
                     Conversation(thread_id=thread_id, user_id=user_id)
                 )
 
-            # Add both messages
-            messages = [
+            message_repo.add_many([
                 Message(conversation_id=conversation.id, role="user", content=user_message),
                 Message(conversation_id=conversation.id, role="assistant", content=assistant_message),
-            ]
-            self._message_repo.add_many(messages)
+            ])
 
-            # Attach documents if provided
             if document_ids:
                 for doc_id in document_ids:
-                    self._conversation_repo.attach_document(conversation.id, doc_id)
+                    conversation_repo.attach_document(conversation.id, doc_id)
 
-            # Update timestamp
-            conversation.updated_at = datetime.utcnow()
-            self._conversation_repo.update(conversation)
-
-        except Exception as e:
-            # Log but don't crash - sync failures shouldn't block user interactions
-            logger.error("Sync failed for thread %s: %s", thread_id, e)
+            conversation.updated_at = datetime.now(UTC)
+            session.commit()
 ```
 
 ### Key Design Decisions
 
-1. **Fire-and-forget**: Sync happens asynchronously after the response is sent
-2. **Graceful failures**: Sync errors are logged but don't crash the system
-3. **Idempotent creates**: Uses `get_by_thread_id` to prevent duplicate conversations
-4. **Document tracking**: Automatically links uploaded documents to conversations
+1. **Own session, not the request's**: The task opens a fresh session from a factory — the request-scoped session is already closed by the time the sync runs
+2. **Off the event loop**: Blocking repo calls run in a worker thread (`asyncio.to_thread`) so they don't stall other requests
+3. **Graceful failures**: Sync errors are logged but don't crash the system
+4. **Idempotent creates**: Uses `get_by_thread_id` to avoid duplicate conversations
+5. **Document tracking**: Automatically links uploaded documents to conversations
 
 ## Graceful Degradation
 
@@ -470,6 +537,11 @@ class AgentRunRequest(BaseModel):
 ### Endpoint Flow
 
 ```python
+# Keep references to background sync tasks so they aren't garbage-collected
+# mid-flight (the event loop only holds a weak reference to a running task).
+_sync_tasks: set[asyncio.Task] = set()
+
+
 @router.post("/run")
 async def run_agent(
     request: AgentRunRequest,
@@ -499,8 +571,9 @@ async def run_agent(
     # 5. Store in Redis (fast, synchronous)
     await thread_provider.invoked(request.prompt, response)
 
-    # 6. Sync to PostgreSQL (async, fire-and-forget)
-    asyncio.create_task(
+    # 6. Sync to PostgreSQL off the request path. The sync service opens its own
+    #    session; keep a reference to the task so it isn't garbage-collected.
+    task = asyncio.create_task(
         sync_service.sync_exchange(
             thread_id=request.thread_id,
             user_id=request.user_id,
@@ -508,6 +581,8 @@ async def run_agent(
             assistant_message=response,
         )
     )
+    _sync_tasks.add(task)
+    task.add_done_callback(_sync_tasks.discard)
 
     return {"response": response}
 ```
@@ -538,13 +613,15 @@ result = await agent.run("Tell me about Python", instructions=enhanced)
 await thread_provider.invoked("Tell me about Python", result.text)
 # Pushes to Redis list, trims to max, sets TTL
 
-# 5. SYNC TO POSTGRESQL - async, fire-and-forget
-asyncio.create_task(sync_service.sync_exchange(
+# 5. SYNC TO POSTGRESQL - background task with its own DB session
+task = asyncio.create_task(sync_service.sync_exchange(
     thread_id="conv_12345",
     user_id="user_456",
     user_message="Tell me about Python",
     assistant_message=result.text,
 ))
+_sync_tasks.add(task)  # keep a reference (see Endpoint Flow above)
+task.add_done_callback(_sync_tasks.discard)
 # Creates conversation row if new, inserts message rows
 # Doesn't block the response to the user
 ```
@@ -554,10 +631,9 @@ asyncio.create_task(sync_service.sync_exchange(
 ```yaml
 services:
   redis:
-    image: redis/redis-stack:latest
+    image: redis:8   # Redis 8+ bundles the query engine / data structures formerly shipped as Redis Stack
     ports:
       - "6379:6379"
-      - "8001:8001"  # Redis Insight UI
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -565,7 +641,7 @@ services:
       retries: 5
 
   postgres:
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_USER: bootcamp
       POSTGRES_PASSWORD: bootcamp
@@ -606,6 +682,72 @@ const { threadId, userId, sendMessage, messages } = useAgentChat({
 });
 ```
 
+## Hands-On Exercise
+
+Run the memory stack and watch all three behaviours the architecture promises — caching, hydration, and graceful degradation.
+
+### Part 1: Start the stack
+
+```bash
+docker compose up -d
+docker compose ps   # wait for redis + postgres healthchecks to pass
+```
+
+### Part 2: Watch Redis fill (L1 cache)
+
+Send a couple of messages from the chat UI (or `curl` the `/run` endpoint) using a known `thread_id`, then inspect the Redis list directly:
+
+```bash
+docker compose exec redis redis-cli LRANGE thread:conv_12345:messages 0 -1
+docker compose exec redis redis-cli TTL thread:conv_12345:messages   # ~86400s (24h)
+```
+
+### Part 3: Hydration from PostgreSQL (L2 storage)
+
+Simulate the Redis TTL expiring by deleting the key, then send a follow-up on the same thread:
+
+```bash
+docker compose exec redis redis-cli DEL thread:conv_12345:messages
+```
+
+Ask something that depends on earlier context ("what did I just ask about?"). The agent still has the history — it was rehydrated from PostgreSQL. Confirm the rows exist:
+
+```bash
+docker compose exec postgres psql -U bootcamp -c \
+  "SELECT role, left(content, 40) FROM messages m \
+   JOIN conversations c ON c.id = m.conversation_id \
+   WHERE c.thread_id = 'conv_12345' ORDER BY m.created_at;"
+```
+
+### Part 4: Graceful degradation
+
+Stop Redis entirely and send another message:
+
+```bash
+docker compose stop redis
+```
+
+The request should still succeed — `get_redis_client` returns `None` and the provider reads history straight from PostgreSQL. Restart Redis (`docker compose start redis`) and confirm the cache repopulates on the next request.
+
+**What you've observed:** the same `thread_id` links both layers; Redis serves fast reads; PostgreSQL is the durable source of truth; and losing either layer degrades gracefully instead of failing.
+
+## Concurrency & Consistency
+
+The hybrid design favours availability and speed, which introduces a few consistency edges worth knowing:
+
+- **Concurrent writes to one thread**: Two requests on the same `thread_id` can interleave their Redis `rpush` calls and both hit the non-atomic get-or-create in `sync_exchange`, racing to create the conversation row. The `UNIQUE` constraint on `conversations.thread_id` is the backstop — treat a duplicate-key error as "already created" and re-fetch. For strict ordering, serialise writes per thread (e.g. a per-thread lock or queue).
+- **Redis vs PostgreSQL divergence**: Because sync is fire-and-forget, PostgreSQL can lag Redis briefly, and a failed sync means an exchange lives only in Redis until its TTL expires. Monitor sync failures (see the checklist); for stronger guarantees, use a durable queue with retries instead of a bare background task.
+- **Trim vs hydration**: Redis keeps only the last `max_thread_messages` exchanges while PostgreSQL keeps everything, so a rehydrated cache reflects the trimmed window, not full history — intentional, but worth remembering when debugging "missing" context.
+
+## Memory & Data Governance
+
+Storing conversation history means storing whatever users typed — often including PII. Treat the memory layer as regulated data:
+
+- **PII in stored messages**: The same detection you apply at the edge applies here. See [Course 1, Module 5](../../course-1/05-enterprise-foundations/) for Presidio-based PII scanning; decide whether to redact before persisting or to store raw with restricted access.
+- **Encryption at rest**: Enable encryption on both Redis and PostgreSQL (managed services usually offer it as a toggle) — conversation content shouldn't sit in plaintext on disk.
+- **Retention & deletion**: Redis TTL handles short-term cleanup, but PostgreSQL rows are permanent. Implement a deletion path for a user's right to erasure (GDPR/CCPA): delete the `conversations` row (cascades to `messages`) **and** purge the matching `thread:{thread_id}:messages` Redis key — clearing one layer isn't enough.
+- **Access & audit**: Restrict who can read the conversations/messages tables, and log access the same way you would for any sensitive store.
+
 ## Production Checklist
 
 ### Redis (L1 Cache)
@@ -636,3 +778,4 @@ const { threadId, userId, sendMessage, messages } = useAgentChat({
 5. **Graceful degradation**: System works with Redis only, PostgreSQL only, or stateless
 6. **Context Provider pattern**: `invoking()` retrieves, `invoked()` stores
 7. **TTL-based cleanup**: Redis expires automatically, PostgreSQL stores permanently
+8. **Memory is regulated data**: stored conversations may contain PII — scan, encrypt at rest, and support deletion across both layers
