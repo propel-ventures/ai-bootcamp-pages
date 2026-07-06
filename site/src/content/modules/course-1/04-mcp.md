@@ -99,6 +99,8 @@ MCP is an open protocol that standardises how AI applications connect to externa
 - **Resources**: Data sources the AI can read from
 - **Prompts**: Pre-defined prompt templates
 
+Tools, Resources, and Prompts are the three primitives a *server* offers. The protocol also defines features a *client* can offer back to the server: **Sampling** (the server asks the client to run an LLM completion), **Roots** (the server queries the filesystem/URI boundaries it may access), and **Elicitation** (the server requests additional input from the user).
+
 ### Why MCP Matters: Write Once, Use Everywhere
 
 Before MCP, integrating tools with AI applications required custom implementations for each platform. If you wanted your database tool to work with Claude, GPT, and other AI systems, you'd need to write and maintain separate integrations for each.
@@ -390,20 +392,21 @@ When deploying MCP servers over HTTP (rather than local stdio), authentication b
 
 ### Key Principles
 
-1. **OAuth 2.1 with PKCE** - Remote HTTP servers act as OAuth 2.1 resource servers that validate a bearer token on every request (there is no session-based auth for remote servers). Clients use the Authorization Code flow with PKCE and the `S256` code challenge; the legacy implicit grant is not permitted.
+1. **OAuth 2.1 with PKCE (Proof Key for Code Exchange)** - Remote HTTP servers act as OAuth 2.1 resource servers that validate a bearer token on every request (there is no session-based auth for remote servers). Clients use the Authorization Code flow with PKCE and the `S256` code challenge; the legacy implicit grant is not permitted.
 2. **Audience-bound tokens (RFC 8707)** - Clients must send the Resource Indicator (`resource` parameter) in authorization and token requests so the issued token is bound to the specific MCP server. Servers must reject any token not intended for them.
 3. **No token pass-through** - When calling upstream APIs, the server must not forward the client's token; it obtains its own credentials for downstream calls. This prevents the "confused deputy" problem.
 4. **Verify every request** - Tokens must be validated on every inbound request to protected endpoints.
 5. **Scoped permissions** - Use OAuth scopes to limit what actions an agent can perform.
+6. **Advertise discovery metadata (RFC 9728)** - Protected servers must expose OAuth 2.0 Protected Resource Metadata (a `.well-known/oauth-protected-resource` document) so clients can discover which authorization server to use.
 
 ### Auth0 for MCP
 
 Auth0 provides a purpose-built solution for MCP authentication:
 
-- **OAuth 2.1 / OIDC compliance** - Standards-based token issuance and validation
-- **Identity provider federation** - Connect to Okta, Entra ID, Google Workspace, etc.
+- **OAuth 2.1 / OpenID Connect (OIDC) compliance** - Standards-based token issuance and validation
+- **Identity provider federation** - Connect to Okta, Microsoft Entra ID, Google Workspace, Ping, etc.
 - **Dynamic client registration** - MCP clients can discover and register automatically
-- **Token Vault** - Managed token lifecycle for third-party API access (Google, Jira, Notion)
+- **Token Vault** - Managed token lifecycle for third-party API access (Google, Microsoft, Jira, Notion)
 
 ```python
 # Example: Protected MCP server with token validation
@@ -437,7 +440,7 @@ async def sensitive_operation(data: str) -> dict:
 | **Remote HTTP** (multi-tenant) | Required - identify users and enforce permissions |
 | **Production API** | Required - with scopes for granular access control |
 
-For production deployments, consider Auth0's MCP integration which handles the OAuth complexity and provides enterprise features like SSO and audit logging.
+For production deployments, consider Auth0's MCP integration which handles the OAuth complexity and provides enterprise features like single sign-on (SSO) and audit logging.
 
 ## Practical Example: Crypto Wallet MCP Server
 
