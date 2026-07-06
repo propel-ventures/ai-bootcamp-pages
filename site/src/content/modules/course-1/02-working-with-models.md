@@ -9,7 +9,7 @@ objectives:
   - "Understand model selection criteria: cost, latency, capability trade-offs"
 resources:
   - title: "Microsoft Foundry Documentation"
-    url: "https://learn.microsoft.com/en-us/azure/ai-foundry/"
+    url: "https://learn.microsoft.com/en-us/azure/foundry/"
     type: "docs"
   - title: "vLLM Documentation"
     url: "https://docs.vllm.ai/"
@@ -59,7 +59,7 @@ Follow the setup instructions in the repository README to get the application ru
 
 ## Using Claude Code
 
-If you're using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI tool for Claude) to work through this module, you can use the `/prime-context` command to quickly get Claude up to speed with the bootcamp codebase.
+If you're using [Claude Code](https://code.claude.com/docs) (Anthropic's CLI tool for Claude) to work through this module, you can use the `/prime-context` command to quickly get Claude up to speed with the bootcamp codebase.
 
 ### What is prime-context?
 
@@ -125,11 +125,11 @@ Direct access to OpenAI models with Azure's enterprise features. (Now offered wi
 - Enterprise authentication via Microsoft Entra ID (formerly Azure AD)
 
 #### Amazon Bedrock
-Access to multiple foundation models (Claude, Llama, Titan) through a unified AWS API.
+Access to multiple foundation models (Claude, Llama, Amazon Nova) through a unified AWS API.
 
 **Key considerations:**
 - Multi-model access through single service
-- IAM-based authentication (no API keys to manage)
+- Identity and Access Management (IAM)-based authentication, with optional API keys for simpler development
 - Pay-per-token pricing with no upfront commitments
 
 ### 2. Self-Hosted Options
@@ -144,7 +144,7 @@ High-performance inference server for production self-hosting with features like
 
 ### 3. Small Language Models (SLMs)
 
-When full LLM capability isn't needed, consider SLMs for cost and latency benefits:
+When full large language model (LLM) capability isn't needed, consider SLMs for cost and latency benefits:
 
 | Model | Parameters | Best For |
 |-------|-----------|----------|
@@ -152,7 +152,7 @@ When full LLM capability isn't needed, consider SLMs for cost and latency benefi
 | SmolLM3 | 3B | Reasoning, multilingual, long-context |
 | Llama 3.2 | 1B-3B | General purpose, multilingual |
 
-> **Note:** These are current lightweight/on-device models chosen for cost and latency. Larger frontier families (e.g., Llama 4, the full Phi-4 models) exist when you need more capability.
+> **Note:** These are current lightweight/on-device models chosen for cost and latency. Larger and reasoning-tuned families (e.g., Llama 4 — the latest open-weight Llama — and the Phi-4-reasoning models) exist when you need more capability.
 
 ### 4. Model Selection Criteria
 
@@ -169,7 +169,7 @@ When full LLM capability isn't needed, consider SLMs for cost and latency benefi
 Fine-tuning should be a last resort. Consider these alternatives first:
 1. **Better prompting** - Often solves 80% of issues
 2. **Few-shot examples** - Provide examples in context
-3. **RAG** - Ground responses in your data
+3. **Retrieval-Augmented Generation (RAG)** - Ground responses in your data
 
 **When fine-tuning makes sense:**
 - Domain-specific terminology the base model doesn't understand
@@ -280,7 +280,7 @@ Set up the bootcamp app to use Claude models via Microsoft Foundry:
 
     ```bash
     cd ai-bootcamp/ai-bootcamp-app
-    docker-compose up
+    docker compose up
     ```
 
 8. Test the configuration by making a request to the backend API, via the React UI at http://localhost:3000/
