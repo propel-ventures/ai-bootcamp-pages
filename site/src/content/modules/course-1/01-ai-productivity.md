@@ -36,79 +36,86 @@ quiz:
 
 ## Overview
 
-Essential for all developers, this module aligns with development excellence principles. Be efficient in using AI for development in all settings: desktop, pipeline, enterprise, and greenfield projects.
+AI coding assistants change how you work in every setting — your editor, the pipeline, greenfield prototypes, and large enterprise codebases. This module is about using them *well*: staying in control, giving them the right context, and building habits that hold up in production rather than just in a demo.
 
-## Topics Covered
+You'll learn the core discipline first, then put it into practice by taking a small .NET API from an empty repository to a reviewed pull request — planning, testing, securing, and shipping a change with AI at each step, the way you would on a real team.
 
-### Working with AI Coding Assistants
-- Cursor, Claude Code, GitHub Copilot, Codex CLI
-- Understanding each tool's strengths and ideal use cases
-- Combining multiple assistants for maximum productivity
+## Guide code, don't vibe code
 
-### Pipeline-First Development
-- Local workflows vs pipeline integration
-- Ensuring consistency between development and CI/CD
-- Best practices for reproducible builds
+The single most important habit in this module is **guide coding**. You let the AI assistant do the heavy lifting, but you direct it and you understand every change it makes — line by line, word by word. The AI writes most of the code; you own the design decisions and the review, and you stay in control of the process at all times.
 
-### Best Practices
-- AGENTS.md patterns for AI context — the cross-tool open standard (a repo-root file that gives coding agents project context; complements tool-specific files like CLAUDE.md)
-- Workflow spec-driven development approaches
-- Using AI to understand legacy codebases
+That's the opposite of **vibe coding**, where you accept output without fully reading it. Vibe coding has its place — prototypes, spikes, throwaway research — but not in code headed for production. When something ships, you should be able to explain every line of it.
 
-### Team Configuration
-- Developer MCP integrations
-- Instructions and skills configuration
-- Team-wide standardization
+As a rule of thumb, Cursor is a strong choice for fast, exploratory vibe coding, while Claude Code with the latest Opus models (currently Claude Opus 4.8) suits the careful, review-every-step guide coding this module is built around. To go deeper on which model-and-tool combinations work best, follow [GosuCoder on YouTube](https://www.youtube.com/watch?v=jrQ8z-KMtek).
+
+## Picking a tool
+
+How you work matters far more than which assistant you use — and that's a position we take deliberately in this bootcamp. The research points the same way: what drives real returns is your workflow, review discipline, and context, not the specific tool — the DORA (DevOps Research and Assessment) report, for example, describes AI as an *amplifier* of your existing practices. So this whole walkthrough is intentionally tool-agnostic — do it in whatever you're comfortable with. If you want to dig into the evidence, start with the [2025 DORA report](https://dora.dev/research/2025/dora-report/), the [Stack Overflow Developer Survey](https://survey.stackoverflow.co/2025/ai), and [JetBrains' developer research](https://blog.jetbrains.com/research/2026/04/which-ai-coding-tools-do-developers-actually-use-at-work/).
+
+In practice, most engineers settle on a primary daily driver rather than switching per task. It's common to *layer* a couple of complementary tools — in-editor autocomplete (GitHub Copilot) as a baseline, alongside an agentic tool (Claude Code or Cursor) for larger, multi-step work — but that's a stable setup, not constant tool-hopping. The main options today:
+
+- **Claude Code** — Anthropic's CLI; strong for guided multi-step work, planning, and agentic tasks across a repo.
+- **GitHub Copilot** — deeply integrated into VS Code and GitHub; inline completions, chat, PR review, coding agent.
+- **Cursor** — an AI-first editor; strong for fast, in-editor work.
+- **Codex CLI** — OpenAI's terminal agent.
+
+Pick one that fits how you work, and put your energy into the workflow the rest of this module teaches.
+
+## Key ideas this module builds on
+
+Three ideas run underneath everything that follows:
+
+- **Pipeline-first development.** The habit that matters most for reproducibility is *desktop and pipeline parity*: whatever an AI assistant does on your machine — running tests, applying instructions, using MCP (Model Context Protocol) servers — should also run in CI (continuous integration). If the pipeline can't reproduce it, it isn't real.
+- **Give AI the right context.** Tools work far better when the repo tells them how it's built. The cross-tool standard for this is **AGENTS.md**, a file at the repo root that gives coding agents project context (it complements tool-specific files like `CLAUDE.md`). Together with spec-driven prompts, good context is what lets AI stay useful even in unfamiliar or legacy code.
+- **Standardise across the team.** Custom agents, instructions/skills, and MCP configs are only valuable if the whole team — and the pipeline — share them. The final section shows one way to do that.
 
 ---
-# Hands-on Exercise
 
+## Hands-on walkthrough: from empty repo to reviewed PR
 
-
-## Exercise 1: Never Vibe Code; Rather Guide Code
-
-- Most of the time will be guide coding which means you let the AI coding assistant do the heavy lifting while you guide it through the process. 
-- You are ready, comprehending and understand every change made line by line, word by word. 
-- You are in control of the process at all times.
-- There is a place for vibe coding such as prototyping, spike and research but not code for production systems.
-- Cursor is the recommended AI coding assistant for high-quality vibe coding, meanwhile we recommend Claude Code with the latest Opus models (currently Claude Opus 4.8) for guide coding.
-- To learn about best AI model + tool combinations, follow Gosucoder on Youtube and watch [this episode](https://www.youtube.com/watch?v=jrQ8z-KMtek)
+The rest of the module is one continuous exercise. You'll build a small .NET API, then use AI to plan, test, secure, and ship a change to it — practising guide coding at every step.
 
 ### Prerequisites
-- .NET Core SDK installed on your machine
-- An AI coding assistant of your choice (e.g., GitHub Copilot, Claude Code, Cursor)
-- A github repository you can push code (it should be private)
 
-### Task1
-- create an API in dotnet core that exposes a single endpoint which returns "Hello, World!" when accessed via HTTP GET request. Use an AI coding assistant of your choice to help you generate the code and set up the project structure. Document the steps you took and any challenges you faced during the process.
-- Add another endpoint that takes a name as a query parameter and returns a personalized greeting message, e.g., "Hello, [Name]!".
+You'll need:
 
-### Task2
-- Say when you wanted to deploy this API, security requests to show that no PII is returned on any endpoints
-- Create a custom/sub agent (e.g., name it `implementation-plan`) to help generate a plan for any requirements in this repository
-- We usually do not create the content of the custom/sub agents manually, rather we copy from the community such as:
-  - Superpowers: https://github.com/obra/superpowers
-  - Awesome Copilot: https://github.com/github/awesome-copilot/tree/main
+- The .NET SDK installed on your machine
+- An AI coding assistant of your choice (e.g., Claude Code, GitHub Copilot, or Cursor)
+- A private GitHub repository you can push to
 
-**⚠️ Heads Up:** If you're installing the Superpowers skills repo, you need to have Superpowers installed first.
-In Claude Code:
-```bash
-/plugin marketplace add obra/superpowers-marketplace
-/plugin install superpowers@superpowers-marketplace
-```
+### Step 1 — Scaffold the API
 
-- After you choose an Implementation-plan agent, select that agent and ask it to create a plan to implement PII redaction middleware that redacts email addresses, phone numbers, and tax file numbers (TFNs) from all API responses.
-- Depending on the model and AI coding assistant, the agent might overengineer the solution, so make sure to review the plan (no vibe planning)
-- Example of what to prompt: 
-  - "Follow ALL instructions files in this repository"
-  - "We need MVP solution with acceptable level of test coverage"
-  - "We should not write more than 2 integration tests and 5-10 unit tests"
-  - So you don't end up with poor solution say: "We need middleware so future endpoints can also benefit from this solution"
-- Notice how iteration in prompting and the order of the prompts matter and make a difference in the output.
-- They might call this prompt engineering, but it's really just effective solution design. 
-- You are making tradeoffs and balancing complexity with delivery speed.
+Start by building the thing you'll later secure. Using your AI assistant, create a .NET API that exposes a single `GET` endpoint returning `"Hello, World!"`. Let the assistant generate the project structure and code — but read what it produces, and note the steps you took and any friction along the way.
 
-**Example iteration progression:**
+Then extend it: add a second endpoint that takes a `name` query parameter and returns a personalised greeting, e.g. `"Hello, [Name]!"`.
+
+### Step 2 — A security requirement lands: plan the change
+
+Suppose you now want to deploy this API, and security requires you to demonstrate that no personally identifiable information (PII) is returned from any endpoint. Rather than jumping straight to code, you'll plan the change first.
+
+Create a custom sub-agent — call it `implementation-plan` — to generate an implementation plan for requirements in this repo. You usually don't write these agents by hand; you copy proven ones from the community and adapt them, for example:
+
+- [Superpowers](https://github.com/obra/superpowers)
+- [Awesome Copilot](https://github.com/github/awesome-copilot/tree/main)
+
+> **⚠️ Heads up:** the Superpowers skills repo requires Superpowers to be installed first. In Claude Code:
+>
+> ```bash
+> /plugin marketplace add obra/superpowers-marketplace
+> /plugin install superpowers@superpowers-marketplace
+> ```
+
+With the agent selected, ask it to plan a **PII redaction middleware** that redacts email addresses, phone numbers, and tax file numbers (TFNs) from all API responses. Review the plan carefully — depending on the model and tool, agents tend to over-engineer, so there's no vibe *planning* either.
+
+The plan you get back depends heavily on how you prompt, and on the order of your prompts. A progression that works:
+
+1. "Follow ALL instructions files in this repository"
+2. "We need an MVP (minimum viable product) solution with an acceptable level of test coverage"
+3. "We should not write more than 2 integration tests and 5–10 unit tests"
+4. To avoid an under-engineered result: "We need middleware so future endpoints can also benefit from this solution"
+
+People call this prompt engineering, but it's really just effective solution design — you're making trade-offs and balancing complexity against delivery speed. Watch how each prompt reshapes the output:
+
 ```
 Initial plan: 24 files (too complex)
   ├── After "MVP + no dependencies": 8 files
@@ -121,31 +128,21 @@ Initial plan: 24 files (too complex)
       └── appsettings.json (config)
 ```
 
-- Now that you're happy with the plan, create another custom/sub agent (e.g., `jira-ticket-creator`) that helps you create Jira cards to track the work.
-- In scrum, you then discuss the ticket with your team during backlog grooming to get their input and ensure everyone is aligned on the implementation approach.
+Once you're happy with the plan, create a second sub-agent — `jira-ticket-creator` — to turn it into Jira cards. On a real team you'd then take that ticket into backlog grooming so everyone is aligned on the approach before any code is written.
 
+### Step 3 — Implement it test-first
 
+Before coding, check whether you need to reset context. Modern models carry large context windows (200k–1M tokens), and tools like Claude Code auto-compact the conversation when it fills up (around 84% full). Rather than watching a fixed token count, use the built-in controls: `/context` to inspect usage, `/compact` (optionally with focus instructions) to summarise and continue, and `/clear` at natural task boundaries. VS Code and GitHub Copilot now surface token and context-window usage directly in the chat input, so keep an eye on it as you work.
 
-### Task 3 Implement the plan
-
-- Before you start coding, check whether you need to reset context with your AI coding assistant
-- Modern models carry large context windows (200k–1M tokens), and tools like Claude Code auto-compact the conversation when it fills up (around 84% full). Rather than watching for a fixed token count, use the built-in controls: `/context` to inspect usage, `/compact` (optionally with focus instructions) to summarise and continue, and `/clear` at natural task boundaries. Always keep an eye on token usage.
-- VS Code and GitHub Copilot now surface token and context-window usage directly in the chat input, so you can monitor it as you work.
-
-**Check context usage example:**
 ```
 📊 Usage: 83.8k / 200k (67% Context Rot) → 🟡 5-8 turns remaining
 Consumers: MCP (35k) + Instructions (25k) + Attachments (12k) + History (8k)
 ```
 
-- Next we will use TDD to implement the plan created in Task 2
-- Create custom/sub agents to help with TDD workflow (e.g., `tdd-red`, `tdd-green`, `tdd-refactor`)
-- You will find them in the Awesome Copilot repo mentioned earlier; adapt them to your ai coding assistant of choice
-- These agents should contain instructions for each TDD phase (you'll define what they do)
-- Use your `tdd-red` agent to implement the first test case from the plan created in Task 2.
-- It should create the test case and ensure it fails *for the right reason* and then stop.
+Now implement the plan with test-driven development (TDD). Create three sub-agents for the cycle — `tdd-red`, `tdd-green`, and `tdd-refactor` — adapting versions from the Awesome Copilot repo above; each holds the instructions for its phase.
 
-**RED phase example (failing test):**
+Start with **red**: have `tdd-red` write the first test case from your plan and confirm it fails *for the right reason*, then stop.
+
 ```csharp
 [Fact]
 public void Redact_EmailAddress_ReturnsRedacted()
@@ -157,58 +154,38 @@ public void Redact_EmailAddress_ReturnsRedacted()
 // ❌ Error: Type 'PiiRedactionService' not found ✅ Correct failure
 ```
 
-- Review the test case, ensure it aligns with your expectations and the plan.
-- Notice with AI coding assistants, your red/green/refactor cycles will be much bigger than the usual small increments. That is OK as long you fully understand and review each step.
-- Next, use your `tdd-green` agent to implement the minimum code required to make the test case pass.
+Review the test against your expectations and the plan. (With AI, your red/green/refactor cycles will be much larger than the usual small increments — that's fine, as long as you understand and review each step.) Then have `tdd-green` write the minimum code to make it pass:
 
-**GREEN phase example (minimal implementation):**
 ```csharp
 public class PiiRedactionService
 {
     private readonly Regex _emailPattern = new(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b");
-    
+
     public string Redact(string input)
         => _emailPattern.Replace(input, "[REDACTED]");
 }
 // ✅ Test passes
 ```
 
-- Review the code, ensure it aligns with your expectations and the plan.
-- Repeat the process for each test case in the plan until all test cases are implemented and passing
-- While the agent is running, take the time to think about what refactoring might be needed before the code gets too complex or messy
-- refactoring might include:
-  - refactoring the test cases themselves for clarity and maintainability
-  - adding high-level tests such as integration tests to ensure the middleware works as expected
-  - the timing of the refactor phase is important for best implementation and no plan can make this upfront
-  - It is OK to go back to the plan if needed and refactor is the window to reconsider the overall design
-  - It is OK to start new totally different approach since as you have seen, 90% of the code is generated by the AI coding assistant
+Review the code, then repeat red → green for each test case in the plan. While the agent works, think ahead about refactoring — before the code gets complex or messy. Refactoring might mean:
 
-- Once all test cases are passing, use your `tdd-refactor` agent to refactor the code for readability, maintainability, and performance.
-- Finally, run all tests to ensure everything is working as expected.
+- tidying the test cases themselves for clarity and maintainability
+- adding higher-level tests (e.g. integration tests) to confirm the middleware works end to end
+- revisiting the plan — the refactor phase is your window to reconsider the overall design, and it's fine to restart with a different approach, since the AI generated most of the code anyway
 
-### Task 4: Reflect and Share
-- Take a 10-15 minute break from the coding exercise and read the [DORA report on AI in 2025](https://dora.dev/research/2025/dora-report/)
-- The main take away is how AI speeds up both you good practices as well as anti-patterns.
-- Post in the bootcamp channel your takeaways from the report. Keep an eye what others are saying as well.
+The right *timing* for the refactor phase is a judgement call no plan can make up front. Once all tests pass, use `tdd-refactor` to improve readability, maintainability, and performance — then run the full suite to confirm everything still works.
 
-### Task 5: Pull Request, Code Review
-- Create a pull request for your changes.
-- You can ask the agent to review the code locally (against your current instructions/skills)
-- You can then ask the agent to create the pull request description based on the changes made
-- Consider creating custom prompts/slash commands (e.g., `/raise-pull-request`, `/draft-commit-message`) for common workflows
-- Set up GitHub MCP integration if available.
-- It appears lazy but overtime, you will have standardised and high quality pull request descriptions while saving your time
-- In practice, once the PR is raised, you would ask a team member to review the code. Small PRs for the win; nothing changed with AI since we are not vibe coding!
-- In addition, you should have AI agent set up to do code reviews as well.
-- GitHub Copilot lets you assign agent reviewers to PRs — you can request a Copilot code review from the GitHub UI or the `gh` CLI, and Anthropic's Claude models are already available as a model choice in Copilot
-- Whatever tool you use, make sure to ask your Platform Engineering team to help:
-  - Set up the ai code reviewers for your team
-  - Configure the instructions/skills for the reviewers
-  - Setup MCP running in the pipeline
+### Step 4 — Reflect on how AI changes the work
 
-**Essential MCP Servers:**
+Take a 10–15 minute break and read the [2025 DORA report on AI](https://dora.dev/research/2025/dora-report/). The key takeaway: AI accelerates your *good* practices and your anti-patterns alike — it amplifies whatever discipline (or lack of it) you bring. Post your takeaways in the bootcamp channel, and read what others share.
 
-These MCP servers are must-haves for productive AI-assisted development:
+### Step 5 — Raise the pull request and set up AI review
+
+Open a pull request (PR) for your change. You can have your assistant review the code locally against your instructions/skills first, then draft the PR description from the actual diff. It feels lazy, but over time you get standardised, high-quality PR descriptions for almost no effort — consider wrapping these in custom slash commands like `/raise-pull-request` and `/draft-commit-message`.
+
+Then a human reviews it, as always: small PRs win, and nothing about that changes with AI — because you're guide coding, not vibe coding. You should *also* have an AI reviewer in the loop. GitHub Copilot lets you assign agent reviewers to PRs — you can request a Copilot code review from the GitHub UI or the `gh` CLI, and Claude models are already selectable in Copilot. Whatever you use, ask your Platform Engineering team to help set up AI reviewers for the team, configure their instructions/skills, and run MCP in the pipeline.
+
+Most of an AI reviewer's value comes from the context you give it, and much of that context comes from **MCP servers**. A few are close to essential for AI-assisted development:
 
 ```json
 {
@@ -234,64 +211,40 @@ These MCP servers are must-haves for productive AI-assisted development:
 }
 ```
 
-**Why these MCPs are essential:**
+Why each matters:
 
-- **Context7**: Fetches up-to-date library documentation and API references
-  - _Why critical_: AI models were trained on outdated data; Context7 provides current docs for frameworks like Next.js, React, .NET
-  - _Use case_: "How do I use the latest .NET 9 features?" → Context7 retrieves current documentation
+- **Context7** fetches up-to-date library documentation and API references. Models are trained on older data, so Context7 gives them current docs for frameworks like Next.js, React, and .NET — ask *"How do I use the latest .NET features?"* and it retrieves the current documentation.
+- **Atlassian (Jira/Confluence)** gives the agent your tickets, docs, and team knowledge, so it understands requirements and prior decisions without manual copy-paste — *"Implement JIRA-12345"* and it reads the ticket, acceptance criteria, and related docs.
+- **Playwright** adds browser automation and testing, so the AI can write, run, and debug end-to-end (E2E) tests and validate UI changes — *"Write an E2E test for the login flow"* and it generates the test, runs it in a browser, and reports back.
+- **APM (application performance monitoring)** tools — Datadog, New Relic, CloudWatch — surface production logs, metrics, and traces, so the agent can diagnose real issues from real data — *"Why is checkout failing?"* and it searches the logs and proposes fixes from the traces.
 
-- **Atlassian (Jira/Confluence)**: Access to tickets, documentation, and team knowledge
-  - _Why critical_: Understands project context, requirements, and existing decisions without manual copy-paste
-  - _Use case_: "Implement JIRA-12345" → Agent reads ticket, understands acceptance criteria, checks related docs
+Without these, the failure modes are predictable: outdated or incorrect API usage (no Context7), duplicated work or missed requirements (no Atlassian), slow manual E2E testing (no Playwright), and debugging production blind (no APM).
 
-- **Playwright**: Browser automation and testing capabilities
-  - _Why critical_: AI can write, run, and debug E2E tests; validate UI changes automatically
-  - _Use case_: "Write E2E test for login flow" → Agent generates test, runs in browser, reports results
+### Step 6 — Push work into the pipeline (optional)
 
-- **APM (Datadog/NewRelic/CloudWatch)**: Production logs, metrics, and traces
-  - _Why critical_: Diagnose production issues with real data; understand actual system behaviour
-  - _Use case_: "Why is checkout failing?" → Agent searches logs, finds errors, proposes fixes based on traces
+An AI reviewer on its own — without the MCP context above — is usually useless. Once the agent is set up in the pipeline *with* that context, you can go further and assign it whole tasks to resolve there. Save instructions so that a slice of your boring, safe, or repetitive PRs are handled entirely by the agent in the pipeline — aim for around 5–10% to start. Try it: using Propel Copilot, assign the agent the same plan from Step 2 and see whether it produces results comparable to your own TDD run.
 
-**Impact without these MCPs:**
-- ❌ AI gives outdated or incorrect API usage (no Context7)
-- ❌ Duplicate work or miss requirements (no Atlassian)
-- ❌ Manual E2E testing slows feedback cycle (no Playwright)
-- ❌ Debugging production issues blind (no APM)
+### Step 7 — Working in legacy systems
 
+Legacy systems are where AI assistants struggle most — they're far less productive without good context and structure. Watch [this talk](https://www.youtube.com/watch?v=rmvDxxNubIg), then get familiar with the techniques that make AI viable in legacy code:
 
-### Task 6 Spike (optional)
-- Having the default ai coder reviewers without the above is usually useless.
-- Once you have that ai agent setup in the pipeline, you can also assign a plan to the ai agent to resolve in the pipeline
-- You can save instructions for a percentage of pull requests that are boring, safe or repetitive for the agent to implement
-- You should aim 5-10% of your pull requests to be handled by the ai agent in the pipeline
-- Using Propel Copilot, try to assign the ai agent the same plan and see if it can produce the same results as your TDD workflow
+- the **research → plan → implement** workflow
+- **spec-driven development**
+- the **dump zone** (a scratch space for gathering context)
+- writing **plans that state exactly what code will change**
 
-### Task 7: Learn more working in legacy systems
-- Working in legacy systems is always challenging. AI coding assistants are not as productive in these systems.
-- Watch this talk https://www.youtube.com/watch?v=rmvDxxNubIg
-- Familiarise yourself with terms and concepts such as:
-  - The research - plan - implement workflow
-  - Spec-driven development
-  - Dump zone
-  - Plans include what code will change
-- Share your thoughts in the bootcamp channel and keep an eye on what others are saying as well.
+Share your thoughts in the bootcamp channel, and keep an eye on what others are finding.
 
+---
 
+## Standardise your team's AI kit
 
-## Exercise 2: AI Kit Setup [for you and your team and organisation]
+Throughout the walkthrough you built custom agents and instructions/skills for your assistant. On a team, those are only worth it if everyone — and the pipeline — uses the same ones. Since most of the artefacts are just markdown files and MCP JSON, a simple approach is a single source-of-truth repository that each project syncs from via a git alias and git hooks.
 
-- Throughout the previous exercise, you have created custom/sub agents and instructions/skills for your AI coding assistants
-- Ideally, you would want to standardise these for your team and organisation
-- Since most of the work is around md files and MCP JSON settings, one of the best ways is to use git alias and git hooks to sync from a single repository that has source of truth for all prompts and settings
-- Create a repository
+**Goal:** create one repository of prompts, agents, and MCP configuration that syncs across all your team's repos.
 
-## Task 1: Standardize Your Team's AI Kit
+### Set up the central repo
 
-**Goal:** Create a single source of truth for prompts, agents, and MCP configurations that syncs across all team repositories.
-
-### Setup GitHub Repository
-
-**Create central config repo:**
 ```bash
 # 1. Create new repo on GitHub: yourorg/ai-kit-config
 # 2. Clone and add structure:
@@ -300,7 +253,8 @@ touch .github/instructions/{coding-standards,tdd-workflow}.instructions.md
 touch .vscode/mcp.json
 ```
 
-**Configure git alias for sync:**
+Add a git alias that clones the config repo and runs its sync script:
+
 ```bash
 # Add to ~/.gitconfig
 git config --global alias.ai-kit '!bash -c "
@@ -311,7 +265,8 @@ git config --global alias.ai-kit '!bash -c "
 "'
 ```
 
-**Create sync script (sync-ai-config.sh):**
+The sync script copies the shared files into the current repo (and keeps `.gitignore` clean on repeat runs):
+
 ```bash
 #!/bin/bash
 # Copy .github/ files to current repo
@@ -325,26 +280,20 @@ grep -qxF ".vscode/mcp.json" ../.gitignore || echo ".vscode/mcp.json" >> ../.git
 echo "✅ AI Kit synced successfully"
 ```
 
-### Daily Usage
+### Daily use
 
-**Developers run:**
+In any repository, a developer just runs:
+
 ```bash
-# In any repository
 git ai-kit
 ```
 
-**What happens:**
-1. Clones ai-kit-config to `/tmp`
-2. Copies instructions/prompts to local repo
-3. Updates MCP server configs
-4. Cleans up automatically
+which clones the config to `/tmp`, copies the instructions/prompts and MCP configs into the repo, and cleans up after itself. You can also add a git hook that runs the same script on new branches, so the kit stays current automatically.
 
-### Optional: Sync on New Branches
-- Add a git hook on new branches to run the same script.
+### Optional: distribute pre-built MCP servers
 
-### Optional: MCP Server Distribution
+You can ship pre-built MCP server binaries alongside the config and have the sync script install them:
 
-**Add pre-built MCP servers:**
 ```
 ai-kit-config/
 ├── .github/mcp-servers/
@@ -353,7 +302,6 @@ ai-kit-config/
 └── sync-ai-config.sh  # Updated to copy exe files
 ```
 
-**Updated sync script:**
 ```bash
 # Copy MCP server executables
 mkdir -p ~/mcp-servers
@@ -361,17 +309,13 @@ cp .github/mcp-servers/*.exe ~/mcp-servers/
 chmod +x ~/mcp-servers/*.exe
 ```
 
-> **Note:** The `.exe` binaries above assume Windows. For Mac/Linux (or a mixed team), distribute platform-appropriate binaries or install servers via `npx`/package managers instead.
+> **Note:** the `.exe` binaries above assume Windows. For Mac/Linux (or a mixed team), distribute platform-appropriate binaries or install servers via `npx`/package managers instead.
 
-### Benefits
-- ✅ Single command syncs latest team standards
-- ✅ Instructions update without PR overhead  
-- ✅ New team members get standards instantly
-- ✅ Cross-IDE support (VSCode, Rider, VS2022). You can customise the script so that it works across IDEs (if needed)
+### Why it's worth it
 
+- One command syncs the latest team standards
+- Instructions update without PR overhead
+- New team members get the standards instantly
+- It works across IDEs (VS Code, Rider, VS 2022) — adapt the script if you need to
 
-### Watch For
-- Resist supporting multiple IDEs within a team and even organisation. As in previous exercise, it is not only your machine but also the pipeline that needs to use this kit
-
----
-
+One thing to watch: resist supporting lots of different IDEs across the team or org. As with everything in this module, it's not only your machine that needs the kit — the pipeline does too, and every extra IDE is another thing to keep in parity.
