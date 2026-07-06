@@ -68,7 +68,7 @@ quiz:
 
 ## Overview
 
-Context engineering is about managing **what the AI knows and when**. A common mistake is jumping straight to complex RAG pipelines when simpler approaches would suffice. This module teaches you to start simple and add complexity only when needed.
+Context engineering is about managing **what the AI knows and when**. A common mistake is jumping straight to complex Retrieval-Augmented Generation (RAG) pipelines when simpler approaches would suffice. This module teaches you to start simple and add complexity only when needed.
 
 **The progression:**
 1. **Simple context injection** - Put the document directly in the prompt
@@ -194,7 +194,7 @@ The simple approach breaks down when:
 - **Semantic search is needed** - "Find documents about X" requires embeddings
 - **Relevance matters** - Not all context is equally important
 
-**RAG (Retrieval-Augmented Generation)** solves these problems by:
+**RAG** solves these problems by:
 1. Chunking documents into smaller pieces
 2. Creating embeddings (vector representations) of each chunk
 3. Storing embeddings in a vector database
@@ -306,7 +306,7 @@ Embeddings map text to high-dimensional vectors where similar meanings are close
 | `text-embedding-3-small` (OpenAI) | 1536 | Good balance of cost/quality |
 | `text-embedding-3-large` (OpenAI) | 3072 | Higher quality, higher cost |
 | `all-MiniLM-L6-v2` (Sentence Transformers) | 384 | Free, runs locally |
-| `voyage-4` (Voyage AI) | 1024 | Strong retrieval; shared embedding space across the Voyage 4 series (`voyage-4-large` / `voyage-4-lite`) means you can switch models without re-indexing |
+| `voyage-4` (Voyage AI) | 1024 | Strong retrieval; a shared embedding space across the Voyage 4 series (`voyage-4-large`, `voyage-4-lite`, and the open-weights `voyage-4-nano`) lets you switch models without re-indexing |
 
 ```python
 # Example: Creating embeddings
@@ -349,6 +349,8 @@ results = collection.query(
     n_results=5
 )
 ```
+
+> **Note:** `chromadb.Client()` runs in memory only — data is lost when the process exits. Use `chromadb.PersistentClient(path="./chroma")` to persist to disk.
 
 **4. Retrieval Strategies** - Finding the most relevant chunks
 
@@ -394,7 +396,7 @@ Loading all context upfront wastes tokens and can overwhelm the model. Progressi
 
 ### 6. Structured Output
 
-LLMs naturally produce free-form text, but applications need predictable data structures. Structured output techniques constrain model responses to match expected schemas, enabling reliable parsing and type safety.
+Large language models (LLMs) naturally produce free-form text, but applications need predictable data structures. Structured output techniques constrain model responses to match expected schemas, enabling reliable parsing and type safety.
 
 #### The Problem with Free-Form Output
 
@@ -426,7 +428,7 @@ response = llm.complete_structured(
 # response.age = 25  (already an int!)
 ```
 
-#### How It Works
+#### How Structured Output Works
 
 | Approach | Mechanism | Trade-off |
 |----------|-----------|-----------|
@@ -500,6 +502,25 @@ response = client.chat.completions.create(
 )
 ```
 
+**Recommended: the `.parse()` helper.** The raw `response_format` above shows the underlying JSON-schema mechanism. In day-to-day code, the OpenAI Python SDK's `.parse()` helper (now generally available — no `beta` prefix) is the ergonomic, type-safe form: pass a Pydantic model and get a parsed object back.
+
+```python
+from pydantic import BaseModel
+from openai import OpenAI
+
+class Person(BaseModel):
+    name: str
+    age: int
+
+client = OpenAI()
+completion = client.chat.completions.parse(
+    model="gpt-5.4-mini",
+    messages=[{"role": "user", "content": "Extract: John is 25"}],
+    response_format=Person,  # a Pydantic model, not a raw dict
+)
+person = completion.choices[0].message.parsed  # already a Person instance
+```
+
 #### When to Use Structured Output
 
 | Use Case | Why |
@@ -536,7 +557,7 @@ The bootcamp app uses a **hybrid memory architecture** combining fast access wit
 
 | Layer | Storage | Purpose | Latency | Retention |
 |-------|---------|---------|---------|-----------|
-| **L1 Cache** | Redis | Fast access for active conversations | ~1ms | 24 hours TTL |
+| **L1 Cache** | Redis | Fast access for active conversations | ~1ms | 24-hour TTL (time-to-live) |
 | **L2 Storage** | PostgreSQL | Permanent conversation history | ~10ms | Permanent |
 
 **How they connect**: The `thread_id` links both layers. Redis stores messages at `thread:{thread_id}:messages`, and PostgreSQL has a `conversations` table with a unique `thread_id` column that references the same identifier.
@@ -659,7 +680,7 @@ The bootcamp app uses a **hybrid approach** combining Redis and PostgreSQL:
 
 | Tool | Best For | Notes |
 |------|----------|-------|
-| **Mem0** | Intelligent memory layer | Auto-extracts facts, manages decay |
+| **Mem0** | Intelligent memory layer | Auto-extracts facts, consolidates and updates memories |
 | **pgvector** | Relational + vector | When you need SQL + embeddings |
 | **In-memory** | Development/testing | No persistence, simple |
 
@@ -794,7 +815,7 @@ Answer: How do I configure the system?"""
 
 ### Part 1: Test Simple Document Processing
 
-1. Start the bootcamp app with `docker-compose up`
+1. Start the bootcamp app with `docker compose up`
 2. Open the Chat UI at http://localhost:3000
 3. Click the **Upload Document** button in the chat interface
 4. Select a PDF file from your computer
