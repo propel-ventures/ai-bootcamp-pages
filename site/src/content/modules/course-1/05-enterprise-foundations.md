@@ -12,7 +12,7 @@ objectives:
   - "Manage costs in production with caching and monitoring"
 resources:
   - title: "DeepEval Documentation"
-    url: "https://deepeval.com/docs"
+    url: "https://deepeval.com/docs/getting-started"
     type: "docs"
   - title: "AI Bootcamp Evals Architecture"
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/evals.md"
@@ -24,7 +24,7 @@ resources:
     url: "https://arize.com/docs/phoenix"
     type: "docs"
   - title: "Presidio PII Detection"
-    url: "https://microsoft.github.io/presidio/"
+    url: "https://presidio.dataprivacystack.org/"
     type: "docs"
   - title: "AI Bootcamp Security Architecture"
     url: "https://github.com/propel-ventures/ai-bootcamp/blob/main/ai-bootcamp-app/docs/arch/security.md"
@@ -351,7 +351,7 @@ OTEL_SERVICE_NAME=my-ai-service
 Production systems need instrumentation at multiple layers:
 
 ```python
-def setup_app_observability() -> None:
+def setup_app_observability(app: FastAPI) -> None:
     """Initialise observability for the application."""
     settings = ObservabilitySettings()
 
@@ -368,7 +368,7 @@ def setup_app_observability() -> None:
 
     # Layer 2: FastAPI HTTP instrumentation
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    FastAPIInstrumentor().instrument()
+    FastAPIInstrumentor.instrument_app(app)
 
     logger.info("Observability enabled")
 ```
@@ -408,7 +408,7 @@ HTTP Request (FastAPI Instrumentation)
 When `OTEL_ENABLE_SENSITIVE_DATA=true`:
 - Full prompt text captured in spans
 - Complete response content recorded
-- **Warning:** Should be `false` in production to protect PII
+- **Warning:** Should be `false` in production to protect personally identifiable information (PII)
 
 ```python
 # Production checklist
@@ -463,7 +463,7 @@ def test_observability_settings_from_env():
 
 ## Security
 
-Production AI systems face unique security challenges: PII leakage in prompts/responses, prompt injection attacks, and sensitive data exposure in observability traces. The AI Bootcamp application implements a comprehensive security layer using **Microsoft Presidio** for PII detection with full **OpenTelemetry integration**.
+Production AI systems face unique security challenges: PII leakage in prompts/responses, prompt injection attacks, and sensitive data exposure in observability traces. The AI Bootcamp application implements a comprehensive security layer using **Microsoft Presidio** for PII detection with full **OpenTelemetry integration**. (Presidio was created by Microsoft and is now transitioning to a community-owned project under Data Privacy Stack; the PyPI packages and APIs are unchanged.)
 
 ### Security Architecture
 
@@ -578,8 +578,8 @@ Adjust `PII_CONFIDENCE_THRESHOLD` in your `.env` file (default is `0.7`) and res
    - Description: Include what the entity type is, regex pattern used, and test cases
 
 **Resources:**
-- [Presidio Custom Recognizers Documentation](https://microsoft.github.io/presidio/analyzer/adding_recognizers/)
-- [Presidio Supported Entities](https://microsoft.github.io/presidio/supported_entities/)
+- [Presidio Custom Recognizers Documentation](https://presidio.dataprivacystack.org/analyzer/adding_recognizers/)
+- [Presidio Supported Entities](https://presidio.dataprivacystack.org/supported_entities/)
 
 ### Detected PII Types
 
@@ -615,11 +615,11 @@ Explore the implementation in the AI Bootcamp repository:
 - `app/security/streaming_pii_scanner.py` - OpenTelemetry integration
 - `tests/security/` - Comprehensive test suite
 
-### Cost Management
+## Cost Management
 
 Production AI systems require careful cost management. Token usage directly impacts operational costs, and without proper tracking, expenses can spiral quickly.
 
-#### Token Economics Architecture
+### Token Economics Architecture
 
 The AI Bootcamp application implements a **CostMappingExporter** that transforms GenAI semantic conventions to OpenInference format for Phoenix cost calculation:
 
@@ -651,7 +651,7 @@ The AI Bootcamp application implements a **CostMappingExporter** that transforms
 
 > **Note:** Model names and per-token prices change frequently. The figures above reflect standard vendor rates as of mid-2026 — always re-verify against current pricing before relying on them for cost estimates.
 
-#### Cost Processor Implementation
+### Cost Processor Implementation
 
 The `CostMappingExporter` maps token attributes from the Agent Framework to Phoenix-readable format:
 
@@ -681,7 +681,7 @@ def map_genai_to_openinference(attributes: dict) -> dict:
     return mapped
 ```
 
-#### Provider Inference
+### Provider Inference
 
 The system automatically infers the LLM provider from model names for accurate cost calculation:
 
@@ -703,31 +703,36 @@ def infer_provider(model_name: str) -> str:
     return "unknown"
 ```
 
-#### Caching for Cost Reduction
+### Caching for Cost Reduction
 
 **LiteLLM** provides a unified interface with built-in cost tracking and caching:
 
 ```python
-from litellm import completion
+import litellm
+from litellm import completion, completion_cost
+from litellm.caching.caching import Cache
+
+# Response caching must be configured before `caching=True` has any effect
+litellm.cache = Cache()  # in-memory by default; also supports Redis, S3, etc.
 
 # LiteLLM tracks costs automatically
 response = completion(
     model="claude-haiku-4-5",
     messages=[{"role": "user", "content": "Hello"}],
-    caching=True  # Enable response caching
+    caching=True  # Now this actually caches the response
 )
 
 # Access cost information
-print(f"Cost: ${response._hidden_params.get('response_cost', 0):.6f}")
+print(f"Cost: ${completion_cost(completion_response=response):.6f}")
 ```
 
 **Memory caching** reduces token usage through context reuse:
 
-- **L1 Cache (Redis)**: 24-hour TTL for conversation threads
+- **L1 Cache (Redis)**: 24-hour time-to-live (TTL) for conversation threads
 - **L2 Store (PostgreSQL)**: Persistent storage with cache hydration
 - **Document Cache**: In-memory layer for retrieved documents
 
-#### Enabling Cost Tracking
+### Enabling Cost Tracking
 
 Configure cost tracking via environment variables:
 
@@ -742,7 +747,7 @@ View costs in Phoenix:
 - **Projects View**: Aggregated costs by model
 - **Experiments**: Cost comparison across configurations
 
-#### Infrastructure-Level Token Monitoring
+### Infrastructure-Level Token Monitoring
 
 Beyond application-level tracking, cloud platforms provide their own token usage metrics at the infrastructure layer:
 
@@ -800,7 +805,7 @@ Enterprise AI projects spend significant effort on integration rather than model
 |---------|----------|------------|
 | **API Gateway** | Expose legacy via REST | Medium |
 | **Event-Driven** | Async updates to/from AI | High |
-| **Batch ETL** | Nightly data sync for RAG | Low-Medium |
+| **Batch ETL** | Nightly data sync for Retrieval-Augmented Generation (RAG) | Low-Medium |
 | **Change Data Capture** | Real-time data streaming | High |
 | **Strangler Fig** | Gradual legacy replacement | Very High |
 
