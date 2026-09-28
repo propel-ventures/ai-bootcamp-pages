@@ -1,1 +1,9 @@
-{}
+{
+  "routes": [
+    {
+      "route": "/*",
+      "redirect": "https://aipdlcbootcamp.propelventures.ai/",
+      "statusCode": 301
+    }
+  ]
+}
